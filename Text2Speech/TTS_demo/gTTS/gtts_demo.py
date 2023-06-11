@@ -8,7 +8,7 @@ import os
 
 '''Options'''
 filename = "hello_gtts.mp3"
-text_file="C:/Users/ah/Desktop/text.txt" # Change to your own path
+text_file="../text.txt" # Change to your own path
 mp3_file = 'speech_gtts.mp3'
 text_to_read = "Hello, this is the SIE ASL team."
 slow_audio_speed = False
