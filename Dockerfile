@@ -13,6 +13,4 @@ COPY requirements.txt .
 # Install the required packages
 RUN pip install -r requirements.txt
 
-# Install DB
-RUN pip install psycopg2
 
