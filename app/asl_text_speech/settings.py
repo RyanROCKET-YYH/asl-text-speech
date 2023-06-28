@@ -76,16 +76,15 @@ WSGI_APPLICATION = 'asl_text_speech.wsgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'asl_text_speech',
-        'USER': 'root',
-        'PASSWORD': 'root',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'asl_text_speech_db',
+        'USER': 'asl_text_speech',
+        'PASSWORD': 'asl_text_speech',
+        'HOST': 'db',
+        'PORT': '5432',
     }
 }
 
