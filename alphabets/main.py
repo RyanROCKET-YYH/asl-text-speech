@@ -1,13 +1,12 @@
 import cv2
 import numpy as np
-import os
 import mediapipe as mp
 
 mp_holistic = mp.solutions.holistic
 mp_drawing = mp.solutions.drawing_utils
 
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Conv1D, Flatten
+from keras.models import Sequential
+from keras.layers import Dense, Conv1D, Flatten
 
 
 
