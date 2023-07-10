@@ -7,11 +7,10 @@ mp_holistic = mp.solutions.holistic
 mp_drawing = mp.solutions.drawing_utils
 
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense, Conv1D, MaxPooling1D, Flatten
-from tensorflow.keras.callbacks import TensorBoard
+from tensorflow.keras.layers import Dense, Conv1D, Flatten
 
-log_dir = os.path.join('Logs')
-tb_callback = TensorBoard(log_dir=log_dir)
+
+
 model = Sequential()
 model.add(Conv1D(32, kernel_size=3, activation='relu', input_shape=(63, 1)))
 
