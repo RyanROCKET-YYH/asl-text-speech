@@ -56,7 +56,7 @@ if __name__ == '__main__':
     all_words = file[1].tolist()
     glosses = all_words[:num_classes]
 
-    weights = 'weights/nslt_100_006900_0.815436.pt'
+    weights = 'weights/nslt_100.pt'
     i3d = load_model(weights, num_classes)
 
     sequence = []
