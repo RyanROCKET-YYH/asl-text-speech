@@ -7,5 +7,10 @@ ENV PYTHONUNBUFFERED 1
 # Set the working directory inside the container
 WORKDIR /app
 
-# Install Django
-RUN pip install Django==3.2.4
+# Copy the requirements.txt file
+COPY requirements.txt .
+
+# Install the required packages
+RUN pip install -r requirements.txt
+
+

@@ -7,4 +7,28 @@ services:
       - 8000:8000
     volumes:
       - ./app:/app
-    command: python manage.py runserver 0.0.0.0:8000
+      - ./static:/app/static
+    command: sh -c "sleep 2 && python manage.py collectstatic --noinput && python manage.py migrate && gunicorn asl_text_speech.wsgi:application --bind 0.0.0.0:8000"
+    depends_on:
+      - db
+    environment:
+      - POSTGRES_USER=asl_text_speech
+      - POSTGRES_PASSWORD=asl_text_speech
+      - POSTGRES_DB=asl_text_speech_db
+      - DB_HOST=db
+      - DB_PORT=5432
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=asl_text_speech
+      - POSTGRES_PASSWORD=asl_text_speech
+      - POSTGRES_DB=asl_text_speech_db
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data/
+    command: bash -c "rm -rf /var/lib/postgresql/data/* && docker-entrypoint.sh postgres"
+    ports:
+      - 5432:5432
+volumes:
+  postgres_data:
+    external: false

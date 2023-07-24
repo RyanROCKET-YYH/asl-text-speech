@@ -14,3 +14,4 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['user','phone','address','city','state','country','work','education','interests']
+
