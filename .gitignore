@@ -1,6 +1,5 @@
 __pycache__/
 app/staticfiles/
-static/
 requirements
 docker-compose.yaml
 Dockerfile
