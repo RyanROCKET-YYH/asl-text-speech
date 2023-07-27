@@ -19,6 +19,9 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+import sys
+sys.path.insert(0, str(BASE_DIR / 'video' / 'WLASL_Inference'))
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -29,7 +32,7 @@ SECRET_KEY = 'django-insecure-fxa-#)i5b*-k@8lu4hf9_9nk9v_znypzb*%jj_n2k*a!g$iy@6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -44,7 +47,12 @@ INSTALLED_APPS = [
     'user',
     'video',
     'rest_framework',
+    'crispy_forms',
+    'crispy_bootstrap5',
 ]
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -81,14 +89,16 @@ WSGI_APPLICATION = 'asl_text_speech.wsgi.application'
 
 # Database
 
+# Modify the USER and the PASSWORD based on your Mysql credentials, set the PORT as the port on your MYSQL
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'asl_text_speech_db',
-        'USER': 'asl_text_speech',
-        'PASSWORD': 'asl_text_speech',
-        'HOST': 'db',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'asl_text_speech',
+        'USER': 'root',
+        'PASSWORD': 'abcd',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 
@@ -130,10 +140,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'asl_text_speech/static')
+]
+# STATIC_ROOT = os.path.join(BASE_DIR, 'asl_text_speech/static')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+LOGIN_REDIRECT_URL = 'index'
+LOGOUT_REDIRECT_URL = 'index'

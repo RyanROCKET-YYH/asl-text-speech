@@ -1,4 +1,15 @@
 from django.http import HttpResponse
 
-def hello_world(request):
-    return HttpResponse("Hello, World!")
+from django.shortcuts import render
+
+def index(request):
+    return render(request, 'index.html')
+
+def about(request):
+    return render(request, 'about.html')
+
+def contact(request):
+    return render(request, 'contact.html')
+
+def error_404(request):
+    return render(request, 'page-404.html')

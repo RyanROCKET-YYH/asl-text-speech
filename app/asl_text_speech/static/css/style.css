@@ -1,0 +1,33 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+header {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    height: 60px;
+}
+
+.login-signup {
+    margin-right: 10px;
+}
+
+.logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+main {
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+    align-items: center;
+}

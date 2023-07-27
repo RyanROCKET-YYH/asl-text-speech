@@ -1,4 +1,11 @@
 Django==3.2.4
 gunicorn
 djangorestframework
-psycopg2
+mysqlclient
+torch
+numpy
+pandas
+opencv-python
+torchinfo
+django-crispy-forms
+crispy-bootstrap5

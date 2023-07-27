@@ -1,4 +1,6 @@
 __pycache__/
 app/staticfiles/
-app/static/
-static/
+requirements
+docker-compose.yaml
+Dockerfile
+venv/

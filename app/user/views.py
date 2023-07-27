@@ -29,3 +29,16 @@ class UserListCreateView(generics.ListCreateAPIView):
 class UserProfileListCreateView(generics.ListCreateAPIView):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
+
+from django.contrib.auth.views import LoginView as AuthLoginView
+from django.views import generic
+from .forms import SignupForm, LoginForm
+
+class SignupView(generic.CreateView):
+    form_class = SignupForm
+    template_name = 'user/signup.html'
+    success_url = '/users/login/'
+
+class LoginView(AuthLoginView):
+    form_class = LoginForm
+    template_name = 'user/login.html'
