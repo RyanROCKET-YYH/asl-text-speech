@@ -10,8 +10,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('users/', include('user.urls')), 
     path('videos/', include('video.urls')),
-    path('', views.home, name='home'),
-    path('logout/', LogoutView.as_view(next_page='home'), name='logout'),
+    path('', views.index, name='index'),
+    path('about/', views.about, name='about'),
+    path('contact/', views.contact, name='contact'),
+    path('page-404/', views.error_404, name='error_404'),
+    path('logout/', LogoutView.as_view(next_page='index'), name='logout'),
 ]
 
 if settings.DEBUG:

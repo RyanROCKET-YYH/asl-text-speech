@@ -3,3 +3,4 @@ app/staticfiles/
 requirements
 docker-compose.yaml
 Dockerfile
+venv/
