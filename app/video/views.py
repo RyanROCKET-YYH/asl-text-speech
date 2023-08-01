@@ -5,17 +5,16 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .WLASL_Inference.Inference import process_sequence, load_model
 import pandas as pd
-import torch
 import subprocess
 from django.http import JsonResponse, HttpResponseRedirect
 import os
 from django.shortcuts import render, redirect
-from .forms import VideoForm
 from django.views import View
 from .forms import VideoForm
 from django.urls import reverse
 from django.contrib import messages
-
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 # Create your views here.
 class VideoListCreateView(generics.ListCreateAPIView):
@@ -45,31 +44,48 @@ class RunMLModelView(APIView):
         result = process_sequence(video, i3d, glosses, num_classes)
         return Response({'result': result})
 
-def run_script(request):
+def run_script(video_file_path):
+    # Assuming script_directory and script_path are set correctly
     current_directory = os.path.dirname(os.path.abspath(__file__)) 
     script_directory = os.path.join(current_directory, 'WLASL_Inference')
     script_path = os.path.join(script_directory, 'Inference.py')
 
-    try:
-        # Change the working directory to the location of the script
-        os.chdir(script_directory)
+    # Change the working directory to the location of the script
+    os.chdir(script_directory)
 
-        result = subprocess.run(['python', script_path], capture_output=True, text=True)
-        output = result.stdout
-        error = result.stderr
-        response = {
-            'output': output,
-            'error': error
-        }
-        return JsonResponse(response)
-    except subprocess.CalledProcessError as e:
-        response = {
-            'error': str(e)
-        }
-        return JsonResponse(response, status=500)
-    finally:
-        # Change the working directory back to its original location
-        os.chdir(current_directory)
+    result = subprocess.run(['python', script_path, video_file_path], capture_output=True, text=True)
+    output = result.stdout
+    error = result.stderr
+
+    # Change the working directory back to its original location
+    os.chdir(current_directory)
+
+    return output, error
+
+@login_required
+def process_video(request, video_id):
+    # Get the video from the database
+    video = Video.objects.get(id=video_id)
+    # Make sure the video belongs to the currently logged-in user
+    if video.user != request.user:
+            messages.error(request, "You do not have permission to process this video.")
+            return HttpResponseRedirect(reverse('list_videos'))
+    # Get the path of the video file
+    video_file_path = video.video_file.path
+
+    # Run the script on the video
+    output, error = run_script(video_file_path)
+
+    # Update video as processed
+    video.processed = True
+    # Save processed video or other details here if required
+    video.save()
+
+    response = {
+        'output': output,
+        'error': error
+    }
+    return JsonResponse(response)
 
 def run_script2(request):
     current_directory = os.path.dirname(os.path.abspath(__file__)) 
@@ -115,3 +131,8 @@ class VideoUploadView(View):
             messages.error(request, 'There was an error uploading your video.')
             return HttpResponseRedirect(reverse('upload_video'))  # assuming 'video_upload' is the name of the URL pattern for the video upload form
 
+
+class VideoListView(LoginRequiredMixin, View):
+    def get(self, request):
+        videos = Video.objects.filter(user=request.user)
+        return render(request, 'video/list.html', {'videos': videos})

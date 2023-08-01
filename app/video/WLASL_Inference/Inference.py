@@ -5,7 +5,8 @@ import cv2
 from pytorch_i3d import InceptionI3d
 import torch.nn as nn
 import torch.nn.functional as nnf
-from torchinfo import summary
+import sys
+# from torchinfo import summary
 
 def pad(img):
     max_size = max(img.shape)
@@ -41,7 +42,7 @@ def load_model(weights, num_classes):
     i3d.replace_logits(num_classes)
     i3d.load_state_dict(torch.load(weights, map_location=torch.device('cpu')))
     # summary(i3d)
-    # i3d.cuda()
+    i3d.cuda()
     i3d = nn.DataParallel(i3d)
     i3d.eval()
 
@@ -66,7 +67,9 @@ if __name__ == '__main__':
     threshold = 0.85
     word = ""
 
-    cap = cv2.VideoCapture("D:\\asl-text-speech\\test - Trim.mp4")
+    video_file_path = sys.argv[1]  # Get the video file path from the command-line arguments
+    cap = cv2.VideoCapture(video_file_path)
+    # cap = cv2.VideoCapture("D:\\asl\\asl-text-speech\\test - Trim.mp4")
     # cap = cv2.VideoCapture("D:\\asl-text-speech\AppleCapoutput.mp4")
     # cap = cv2.VideoCapture(0)
     while cap.isOpened():

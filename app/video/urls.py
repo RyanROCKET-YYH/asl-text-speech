@@ -9,4 +9,6 @@ urlpatterns = [
     path('translations/', TranslationListCreateView.as_view(), name='translation-list-create'),
     path('run-script/', run_script, name='run-script'),
     path('run-script2/', run_script2, name='run-script2'),
+    path('list/', VideoListView.as_view(), name='list_videos'),
+    path('process/<int:video_id>/', process_video, name='process_video'),
 ]

@@ -1,0 +1,29 @@
+<!-- video/list.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Videos</title>
+</head>
+<body>
+    <h1>My Videos</h1>
+
+    <ul>
+        {% for video in videos %}
+            <li>
+                <a href="{{ video.video_file.url }}">{{ video.video_file.name }}</a>
+                {% if not video.processed %}
+                    <form method="POST" action="{% url 'process_video' video.id %}">
+                        {% csrf_token %}
+                        <button type="submit">Process</button>
+                    </form>
+                {% endif %}
+            </li>
+        {% empty %}
+            <li>No videos uploaded.</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{% url 'upload_video' %}">Upload another video</a>
+</body>
+</html>

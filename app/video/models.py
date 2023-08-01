@@ -14,10 +14,19 @@ def user_directory_path(instance, filename):
     return 'videos/user_{0}/{1}'.format(instance.user.id, filename)
 
 class Video(models.Model):
+    STATUS_CHOICES = [
+        ('UPLOADED', 'Uploaded'),
+        ('PROCESSING', 'Processing'),
+        ('COMPLETED', 'Completed'),
+        ('FAILED', 'Failed'),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     video_file = models.FileField(upload_to=user_directory_path, validators=[validate_file_extension])   # file field to store the uploaded video
     transcipt = models.TextField(blank=True)    # text field to store the generated transcript
     created_at = models.DateTimeField(auto_now_add=True)    # date time field to store the date and time of video upload
+    processed_video_file = models.FileField(upload_to=user_directory_path, blank=True, null=True)   # file field to store the processed video
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='UPLOADED')  # status field to store the current status of the video
 
 class Translation(models.Model):
     TRANSLATION_DIRECTIONS = [
