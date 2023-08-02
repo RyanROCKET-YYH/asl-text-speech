@@ -15,6 +15,7 @@ from django.views import View
 from .forms import VideoForm
 from django.urls import reverse
 from django.contrib import messages
+from django.views.decorators.cache import never_cache
 
 
 # Create your views here.
@@ -45,14 +46,14 @@ class RunMLModelView(APIView):
         result = process_sequence(video, i3d, glosses, num_classes)
         return Response({'result': result})
 
+@never_cache
 def run_script(request):
     current_directory = os.path.dirname(os.path.abspath(__file__)) 
     script_directory = os.path.join(current_directory, 'WLASL_Inference')
     script_path = os.path.join(script_directory, 'Inference.py')
-
     try:
         # Change the working directory to the location of the script
-        os.chdir(script_directory)
+        #os.chdir(script_directory)
 
         result = subprocess.run(['python', script_path], capture_output=True, text=True)
         output = result.stdout

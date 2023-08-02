@@ -64,8 +64,8 @@ if __name__ == '__main__':
     threshold = 0.85
     word = ""
 
-    cap = cv2.VideoCapture(0)
-    #cap = cv2.VideoCapture('video.mp4')
+    #cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture('/afs/ece.cmu.edu/usr/hanqid/Public/asl-text-speech/test - Trim.mp4')
 
     while cap.isOpened():
 

@@ -5,7 +5,7 @@ import cv2
 from pytorch_i3d import InceptionI3d
 import torch.nn as nn
 import torch.nn.functional as nnf
-from torchinfo import summary
+#from torchinfo import summary
 
 def pad(img):
     max_size = max(img.shape)
@@ -21,6 +21,7 @@ def center_crop(img):
     h = 224
     x = center[1]/2 - w/2
     y = center[0]/2 - h/2
+
     return img[int(y):int(y+h), int(x):int(x+w)]
 
 def process_sequence(frames):
@@ -39,9 +40,9 @@ def process_sequence(frames):
 def load_model(weights, num_classes):
     i3d = InceptionI3d(400, in_channels=3)
     i3d.replace_logits(num_classes)
-    i3d.load_state_dict(torch.load(weights, map_location=torch.device('cpu')))
-    # summary(i3d)
-    # i3d.cuda()
+    i3d.load_state_dict(torch.load(weights))
+    #summary(i3d)
+    i3d.cuda()
     i3d = nn.DataParallel(i3d)
     i3d.eval()
 
@@ -51,72 +52,67 @@ if __name__ == '__main__':
 
     num_classes = 100
 
-    file = pd.read_csv("dataset\wlasl_class_list.txt", sep='\t', header=None)
-    # file = pd.read_csv("D:\\asl-text-speech\\app\\video\WLASL_Inference\dataset\wlasl_class_list.txt", sep='\t', header=None)
+    file = pd.read_csv("/afs/ece.cmu.edu/usr/hanqid/Public/asl-text-speech/WLASL_Inference/dataset/wlasl_class_list.txt", sep='\t', header=None)
     all_words = file[1].tolist()
     glosses = all_words[:num_classes]
 
-    weights = 'weights\\nslt_100.pt'
-    # weights = 'D:\\asl-text-speech\\app\\video\WLASL_Inference\weights\\nslt_100.pt'
+    weights = '/afs/ece.cmu.edu/usr/hanqid/Public/asl-text-speech/WLASL_Inference/weights/nslt_100.pt'
     i3d = load_model(weights, num_classes)
 
     sequence = []
     sentence = []
-    frame_number = 0  # Counter for the current frame number
     threshold = 0.85
     word = ""
 
-    cap = cv2.VideoCapture("D:\\asl-text-speech\\test - Trim.mp4")
-    # cap = cv2.VideoCapture("D:\\asl-text-speech\AppleCapoutput.mp4")
-    # cap = cv2.VideoCapture(0)
+    #cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture('/afs/ece.cmu.edu/usr/hanqid/Public/asl-text-speech/test - Trim.mp4')
+
     while cap.isOpened():
+
         # Read feed
         ret, frame = cap.read()
+        
         if ret == 0:
             break
+            
         output_frame = frame.copy()
         
         frame = pad(frame)
         frame = cv2.resize(frame, dsize=(256, 256))
         frame = center_crop(frame)
-        
+
         frame = (frame / 255.) * 2 - 1
 
         sequence.append(frame)
         sequence = sequence[-40:]
-        
+
         if len(sequence) == 40:
             per_frame_logits = i3d(process_sequence(sequence))
             predictions = torch.max(per_frame_logits, dim=2)[0]
             word = glosses[torch.argmax(predictions[0]).item()]
-
+            
             if torch.max(nnf.softmax(predictions, dim=1)).item() > threshold: 
                 if len(sentence) > 0: 
                     if word != sentence[-1]:
                         sentence.append(word)
-                        print(f"Frame {frame_number}: {word}")
                 else:
                     sentence.append(word)
-                    print(f"Frame {frame_number}: {word}")
-
                 if len(sentence) > 5: 
                     sentence = sentence[-5:]
-            
-            frame_number += 1  # Increase the frame counter
                 
-        # Render output
         cv2.rectangle(output_frame, (0,0), (640, 40), (245, 117, 16), -1)
-        cv2.putText(output_frame, ' '.join(sentence), (3,30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+        cv2.putText(output_frame, ' '.join(sentence), (3,30), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
         # Show to screen
         cv2.imshow('OpenCV Feed', output_frame)
-        # print(sentence, end='\r')
+        #print(sentence, end='\r')
 
-        # Close window
+        # Break
         if cv2.waitKey(10) & 0xFF == ord('q'):
             break
 
     cap.release()
     cv2.destroyAllWindows()
-    print(sentence)
-    
+    print(sentence, end='\r')
+

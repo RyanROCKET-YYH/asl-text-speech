@@ -1,3 +1,5 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import cv2
 import numpy as np
 import mediapipe as mp
@@ -19,7 +21,7 @@ model.add(Flatten())
 
 model.add(Dense(38, activation='softmax'))
 
-weight_file = 'alphabets0.h5'
+weight_file = 'alphabets1.keras'
 model.load_weights(weight_file)
 
 
@@ -158,7 +160,7 @@ def associat(input):
 
 
 # cap = cv2.VideoCapture(0)  # cap is the webcam
-cap = cv2.VideoCapture("D:\\asl-text-speech\\test - Trim.mp4")
+cap = cv2.VideoCapture("/afs/ece.cmu.edu/usr/hanqid/Public/asl-text-speech/alphabets/yep.mp4")
 # access the mediapipe model as holistic
 alphabets = np.array(
     ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W',
