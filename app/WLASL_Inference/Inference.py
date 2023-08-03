@@ -6,7 +6,6 @@ from pytorch_i3d import InceptionI3d
 import torch.nn as nn
 import torch.nn.functional as nnf
 import sys
-# from torchinfo import summary
 
 def pad(img):
     max_size = max(img.shape)
@@ -41,7 +40,6 @@ def load_model(weights, num_classes):
     i3d = InceptionI3d(400, in_channels=3)
     i3d.replace_logits(num_classes)
     i3d.load_state_dict(torch.load(weights, map_location=torch.device('cpu')))
-    # summary(i3d)
     i3d.cuda()
     i3d = nn.DataParallel(i3d)
     i3d.eval()
