@@ -62,6 +62,24 @@ def run_script(video_file_path):
 
     return output, error
 
+def run_script_live(request):
+    # Assuming script_directory and script_path are set correctly
+    current_directory = os.path.dirname(os.path.abspath(__file__)) 
+    script_directory = os.path.join(current_directory, 'WLASL_Inference')
+    script_path = os.path.join(script_directory, 'Inference_live.py')
+
+    # Change the working directory to the location of the script
+    os.chdir(script_directory)
+
+    result = subprocess.run(['python', script_path, video_file_path], capture_output=True, text=True)
+    output = result.stdout
+    error = result.stderr
+
+    # Change the working directory back to its original location
+    os.chdir(current_directory)
+
+    return output, error
+
 @login_required
 def process_video(request, video_id):
     # Get the video from the database
