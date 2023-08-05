@@ -180,12 +180,13 @@ with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=
     last_left = ''
     count = 0
     count_left = 0
-    curr_sign = ''
-    curr_sign_left = ''
+    curr_sign = ' '
+    curr_sign_left = ' '
     word = ''
     word_left = ''
     association = ''
     association_left = ''
+    full_data = bytearray()
 
     while True:  # while webcam is open, keep the loop
 
@@ -199,6 +200,10 @@ with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=
 
             if stream_flag == '0':
                 break
+
+            connection.sendall(bytes(curr_sign, 'utf-8'))
+            #connection.sendall(bytes(curr_sign_left, 'utf-8'))
+
             while True:
                 data = connection.recv(800000)
 
@@ -286,8 +291,6 @@ with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=
                     # cv2.putText(frame, association, (120, 350), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 4, cv2.LINE_AA)
 
                     # cv2.imshow('OpenCV Feed', frame)  # show the frame
-                    connection.sendall(bytes(curr_sign, 'utf-8'))
-                    connection.sendall(bytes(curr_sign_left, 'utf-8'))
                     full_data = bytearray()
                     break
         finally:
