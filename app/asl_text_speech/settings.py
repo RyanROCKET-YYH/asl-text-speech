@@ -93,12 +93,12 @@ WSGI_APPLICATION = 'asl_text_speech.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'asl_text_speech',
-        'USER': 'root',
-        'PASSWORD': 'abcd',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'asl_text_speech_db',
+        'USER': 'asl_text_speech',
+        'PASSWORD': 'asl_text_speech',
         'HOST': 'localhost',
-        'PORT': '3306',
+        'PORT': '5432',
     }
 }
 
@@ -152,3 +152,13 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = 'index'
 LOGOUT_REDIRECT_URL = 'index'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'videos')    # where we store the videos
+MEDIA_URL = '/videos/'
+
+
+FILE_UPLOAD_HANDLERS = [
+    "django.core.files.uploadhandler.MemoryFileUploadHandler",
+    "django.core.files.uploadhandler.TemporaryFileUploadHandler",
+]
+FILE_UPLOAD_MAX_MEMORY_SIZE = 31457280  # for 30MB
+

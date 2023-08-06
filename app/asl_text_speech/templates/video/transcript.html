@@ -1,0 +1,15 @@
+{% load videoname_filter %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Transcript for {{ video.video_file.name|basename }}</title>
+</head>
+<body>
+    <h1>Transcript for {{ video.video_file.name|basename }}</h1>
+    
+    <p>{{ video.transcript }}</p>
+    
+    <a href="{% url 'list_videos' %}">Back to videos list</a>
+</body>
+</html>

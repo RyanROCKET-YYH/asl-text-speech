@@ -70,8 +70,18 @@ def process_video(request, video_id):
     if video.user != request.user:
             messages.error(request, "You do not have permission to process this video.")
             return HttpResponseRedirect(reverse('list_videos'))
+    
+    if video.status == 'COMPLETED':
+        return JsonResponse({
+            'output': video.transcript,
+            'error': None
+        })
+    
     # Get the path of the video file
     video_file_path = video.video_file.path
+
+    video.status = 'PROCESSING'
+    video.save()
 
     # Run the script on the video
     output, error = run_script(video_file_path, video_id)
@@ -82,8 +92,6 @@ def process_video(request, video_id):
         video.status = 'COMPLETED'
         video.transcript = output
 
-    # Update video as processed
-    video.processed = True
     # Save processed video or other details here if required
     video.save()
 
@@ -153,3 +161,14 @@ def delete_video(request, video_id):
     video.delete()
     messages.success(request, "Video deleted.")
     return HttpResponseRedirect(reverse('list_videos'))
+
+@login_required
+def view_transcript(request, video_id):
+    video = get_object_or_404(Video, id=video_id)
+    
+    # Ensure the logged-in user owns this video
+    if video.user != request.user:
+        messages.error(request, "You do not have permission to view this transcript.")
+        return HttpResponseRedirect(reverse('list_videos'))
+
+    return render(request, 'video/transcript.html', {'video': video})

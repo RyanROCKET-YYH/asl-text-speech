@@ -13,7 +13,7 @@ def validate_file_extension(value):
     
 def user_directory_path(instance, filename):
     # file will be uploaded to MEDIA_ROOT/videos/user_<id>/<filename>
-    return 'videos/user_{0}/{1}'.format(instance.user.id, filename)
+    return 'user_{0}/{1}'.format(instance.user.id, filename)
 
 class Video(models.Model):
     STATUS_CHOICES = [
@@ -29,6 +29,8 @@ class Video(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)    # date time field to store the date and time of video upload
     processed_video_file = models.FileField(upload_to=user_directory_path, blank=True, null=True)   # file field to store the processed video
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='UPLOADED')  # status field to store the current status of the video
+    def get_status_display(self):
+        return dict(self.STATUS_CHOICES).get(self.status, 'Unknown')
 
 @receiver(post_delete, sender=Video)
 def submission_delete(sender, instance, **kwargs):
