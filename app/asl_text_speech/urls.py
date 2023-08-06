@@ -15,7 +15,7 @@ urlpatterns = [
     path('contact/', views.contact, name='contact'),
     path('page-404/', views.error_404, name='error_404'),
     path('logout/', LogoutView.as_view(next_page='index'), name='logout'),
-    path('receive_frame/', include('receive_frame.urls'), name='receive_frame'),
+    # path('receive_frame/', include('receive_frame.urls'), name='receive_frame'),
 
 ]
 
