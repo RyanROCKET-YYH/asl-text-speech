@@ -6,7 +6,14 @@ from pytorch_i3d import InceptionI3d
 import torch.nn as nn
 import torch.nn.functional as nnf
 import sys
-# from torchinfo import summary
+import os
+import django
+
+sys.path.append('D:\\asl\\asl-text-speech\\app')
+os.environ['DJANGO_SETTINGS_MODULE'] = 'asl_text_speech.settings'  
+django.setup()
+
+from video.models import Video 
 
 def pad(img):
     max_size = max(img.shape)
@@ -68,6 +75,7 @@ if __name__ == '__main__':
     word = ""
 
     video_file_path = sys.argv[1]  # Get the video file path from the command-line arguments
+    video_id = int(sys.argv[2])
     cap = cv2.VideoCapture(video_file_path)
     # cap = cv2.VideoCapture("D:\\asl\\asl-text-speech\\test - Trim.mp4")
     # cap = cv2.VideoCapture("D:\\asl-text-speech\AppleCapoutput.mp4")
@@ -102,24 +110,25 @@ if __name__ == '__main__':
                     sentence.append(word)
                     print(f"Frame {frame_number}: {word}")
 
-                if len(sentence) > 5: 
-                    sentence = sentence[-5:]
+                # if len(sentence) > 5: 
+                #     sentence = sentence[-5:]
             
             frame_number += 1  # Increase the frame counter
                 
         # Render output
-        cv2.rectangle(output_frame, (0,0), (640, 40), (245, 117, 16), -1)
-        cv2.putText(output_frame, ' '.join(sentence), (3,30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+    #     cv2.rectangle(output_frame, (0,0), (640, 40), (245, 117, 16), -1)
+    #     cv2.putText(output_frame, ' '.join(sentence), (3,30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
-        # Show to screen
-        cv2.imshow('OpenCV Feed', output_frame)
-        # print(sentence, end='\r')
+    #     # Show to screen
+    #     cv2.imshow('OpenCV Feed', output_frame)
+    #     # print(sentence, end='\r')
 
-        # Close window
-        if cv2.waitKey(10) & 0xFF == ord('q'):
-            break
+    #     # Close window
+    #     if cv2.waitKey(10) & 0xFF == ord('q'):
+    #         break
 
-    cap.release()
-    cv2.destroyAllWindows()
+    # cap.release()
+    # cv2.destroyAllWindows()
     print(sentence)
-    
+    # Get the video instance and update its transcript field
+    print(' '.join(sentence))

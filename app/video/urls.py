@@ -11,4 +11,5 @@ urlpatterns = [
     path('run-script2/', run_script2, name='run-script2'),
     path('list/', VideoListView.as_view(), name='list_videos'),
     path('process/<int:video_id>/', process_video, name='process_video'),
+    path('videos/<int:video_id>/delete/', delete_video, name='delete_video'),
 ]

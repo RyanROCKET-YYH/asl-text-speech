@@ -8,7 +8,7 @@ import pandas as pd
 import subprocess
 from django.http import JsonResponse, HttpResponseRedirect
 import os
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from .forms import VideoForm
 from django.urls import reverse
@@ -44,7 +44,7 @@ class RunMLModelView(APIView):
         result = process_sequence(video, i3d, glosses, num_classes)
         return Response({'result': result})
 
-def run_script(video_file_path):
+def run_script(video_file_path, video_id):
     # Assuming script_directory and script_path are set correctly
     current_directory = os.path.dirname(os.path.abspath(__file__)) 
     script_directory = os.path.join(current_directory, 'WLASL_Inference')
@@ -53,7 +53,7 @@ def run_script(video_file_path):
     # Change the working directory to the location of the script
     os.chdir(script_directory)
 
-    result = subprocess.run(['python', script_path, video_file_path], capture_output=True, text=True)
+    result = subprocess.run(['python', script_path, video_file_path, str(video_id)], capture_output=True, text=True)
     output = result.stdout
     error = result.stderr
 
@@ -74,7 +74,13 @@ def process_video(request, video_id):
     video_file_path = video.video_file.path
 
     # Run the script on the video
-    output, error = run_script(video_file_path)
+    output, error = run_script(video_file_path, video_id)
+
+    if error:
+        video.status = 'FAILED'
+    else:
+        video.status = 'COMPLETED'
+        video.transcript = output
 
     # Update video as processed
     video.processed = True
@@ -121,11 +127,11 @@ class VideoUploadView(View):
     def post(self, request, *args, **kwargs):
         form = VideoForm(request.POST, request.FILES)
         if form.is_valid():
-            new_video = Video(video_file=request.FILES['video'], user=request.user)
+            new_video = Video(video_file=request.FILES['video_file'], user=request.user)
             new_video.save()
             # Redirect to a new page, or add a success message
             messages.success(request, 'Video uploaded successfully.')
-            return HttpResponseRedirect(reverse('profile_view'))  
+            return HttpResponseRedirect(reverse('list_videos'))  
         else:
             # Add an error message
             messages.error(request, 'There was an error uploading your video.')
@@ -136,3 +142,14 @@ class VideoListView(LoginRequiredMixin, View):
     def get(self, request):
         videos = Video.objects.filter(user=request.user)
         return render(request, 'video/list.html', {'videos': videos})
+     
+@login_required
+def delete_video(request, video_id):
+    video = get_object_or_404(Video, id=video_id)
+    # Ensure the video belongs to the currently logged-in user
+    if video.user != request.user:
+        messages.error(request, "You do not have permission to delete this video.")
+        return HttpResponseRedirect(reverse('list_videos'))
+    video.delete()
+    messages.success(request, "Video deleted.")
+    return HttpResponseRedirect(reverse('list_videos'))
