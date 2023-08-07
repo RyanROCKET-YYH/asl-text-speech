@@ -1,4 +1,5 @@
 <!-- video/list.html -->
+{% load videoname_filter %}
 
 <!DOCTYPE html>
 <html>
@@ -11,13 +12,35 @@
     <ul>
         {% for video in videos %}
             <li>
-                <a href="{{ video.video_file.url }}">{{ video.video_file.name }}</a>
-                {% if not video.processed %}
-                    <form method="POST" action="{% url 'process_video' video.id %}">
+                <!-- Video Preview -->
+                <video width="320" height="240" controls>
+                    <source src="{{ video.video_file.url }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                
+                <!-- Video Name and Status -->
+                {{ video.video_file.name|basename }} - <strong>Status: {{ video.get_status_display }}</strong>
+
+                <!-- Process Video Button -->
+                {% if video.status == 'UPLOADED' or video.status == 'FAILED' %}
+                <form method="POST" action="{% url 'process_video' video.id %}">
                         {% csrf_token %}
                         <button type="submit">Process</button>
                     </form>
                 {% endif %}
+
+                <!-- Link to View Transcript -->
+                {% if video.status == 'COMPLETED' %}
+                    <a href="{% url 'view_transcript' video.id %}">View Transcript</a> | 
+                    <a href="{% url 'process_video' video.id %}">Reprocess</a>
+                {% endif %}
+
+                <!-- Delete Video Button -->
+                <form method="POST" action="{% url 'delete_video' video.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="_method" value="DELETE">
+                    <button type="submit">Delete</button>
+                </form>
             </li>
         {% empty %}
             <li>No videos uploaded.</li>

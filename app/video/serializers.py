@@ -4,7 +4,7 @@ from .models import Video, Translation
 class VideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
-        fields = ['id', 'user', 'video_file','transcipt', 'created_at']
+        fields = ['id', 'user', 'video_file','transcript', 'created_at']
 
 class TranslationSerializer(serializers.ModelSerializer):
     class Meta:
