@@ -44,7 +44,7 @@ class RunMLModelView(APIView):
         result = process_sequence(video, i3d, glosses, num_classes)
         return Response({'result': result})
 
-def run_script(video_file_path, video_id):
+def run_script_words(video_file_path, video_id):
     # Assuming script_directory and script_path are set correctly
     current_directory = os.path.dirname(os.path.abspath(__file__)) 
     script_directory = os.path.join(current_directory, 'WLASL_Inference')
@@ -62,7 +62,7 @@ def run_script(video_file_path, video_id):
 
     return output, error
 
-def run_script_live(request):
+def run_script_words_live(request):
     # Assuming script_directory and script_path are set correctly
     current_directory = os.path.dirname(os.path.abspath(__file__)) 
     script_directory = os.path.join(current_directory, 'WLASL_Inference')
@@ -81,7 +81,7 @@ def run_script_live(request):
     return output, error
 
 @login_required
-def process_video(request, video_id):
+def process_video_words(request, video_id):
     # Get the video from the database
     video = Video.objects.get(id=video_id)
     # Make sure the video belongs to the currently logged-in user
@@ -89,26 +89,26 @@ def process_video(request, video_id):
             messages.error(request, "You do not have permission to process this video.")
             return HttpResponseRedirect(reverse('list_videos'))
     
-    if video.status == 'COMPLETED' and request.POST.get('reprocess') != "true":
+    if video.words_status == 'COMPLETED' and request.POST.get('reprocess') != "true":
         return JsonResponse({
-            'output': video.transcript,
+            'output': video.transcript_words,
             'error': None
         })
     
     # Get the path of the video file
     video_file_path = video.video_file.path
 
-    video.status = 'PROCESSING'
+    video.words_status = 'PROCESSING'
     video.save()
 
     # Run the script on the video
-    output, error = run_script(video_file_path, video_id)
+    output, error = run_script_words(video_file_path, video_id)
 
     if error:
-        video.status = 'FAILED'
+        video.words_status = 'FAILED'
     else:
-        video.status = 'COMPLETED'
-        video.transcript = output
+        video.words_status = 'COMPLETED'
+        video.transcript_words = output
 
     # Save processed video or other details here if required
     video.save()
@@ -119,7 +119,7 @@ def process_video(request, video_id):
     }
     return JsonResponse(response)
 
-def run_script_2(video_file_path, video_id):
+def run_script_alphabets(video_file_path, video_id):
     # Assuming script_directory and script_path are set correctly
     current_directory = os.path.dirname(os.path.abspath(__file__)) 
     script_directory = os.path.join(current_directory, 'alphabets')
@@ -138,7 +138,7 @@ def run_script_2(video_file_path, video_id):
     return output, error
 
 @login_required
-def process_video_2(request, video_id):
+def process_video_alphabets(request, video_id):
     # Get the video from the database
     video = Video.objects.get(id=video_id)
     # Make sure the video belongs to the currently logged-in user
@@ -146,26 +146,26 @@ def process_video_2(request, video_id):
             messages.error(request, "You do not have permission to process this video.")
             return HttpResponseRedirect(reverse('list_videos'))
     
-    if video.status == 'COMPLETED':
+    if video.alphabets_status == 'COMPLETED' and request.POST.get('reprocess') != "true":
         return JsonResponse({
-            'output': video.transcript,
+            'output': video.transcript_alphabets,
             'error': None
         })
     
     # Get the path of the video file
     video_file_path = video.video_file.path
 
-    video.status = 'PROCESSING'
+    video.alphabets_status = 'PROCESSING'
     video.save()
 
     # Run the script on the video
-    output, error = run_script_2(video_file_path, video_id)
+    output, error = run_script_alphabets(video_file_path, video_id)
 
     if error:
-        video.status = 'FAILED'
+        video.alphabets_status = 'FAILED'
     else:
-        video.status = 'COMPLETED'
-        video.transcript = output
+        video.alphabets_status = 'COMPLETED'
+        video.transcript_alphabets = output
 
     # Save processed video or other details here if required
     video.save()
@@ -176,7 +176,7 @@ def process_video_2(request, video_id):
     }
     return JsonResponse(response)
 
-def run_script_live_2(request):
+def run_script_alphabets_live(request):
     # Assuming script_directory and script_path are set correctly
     current_directory = os.path.dirname(os.path.abspath(__file__)) 
     script_directory = os.path.join(current_directory, 'alphabets')
@@ -230,7 +230,7 @@ def delete_video(request, video_id):
     return HttpResponseRedirect(reverse('list_videos'))
 
 @login_required
-def view_transcript(request, video_id):
+def view_transcript_words(request, video_id):
     video = get_object_or_404(Video, id=video_id)
     
     # Ensure the logged-in user owns this video

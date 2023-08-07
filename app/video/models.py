@@ -25,10 +25,13 @@ class Video(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     video_file = models.FileField(upload_to=user_directory_path, validators=[validate_file_extension])   # file field to store the uploaded video
-    transcript = models.TextField(blank=True)    # text field to store the generated transcript
+    transcript_words = models.TextField(blank=True)    # text field to store the generated transcript
+    transcript_alphabets = models.TextField(blank=True) 
     created_at = models.DateTimeField(auto_now_add=True)    # date time field to store the date and time of video upload
     processed_video_file = models.FileField(upload_to=user_directory_path, blank=True, null=True)   # file field to store the processed video
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='UPLOADED')  # status field to store the current status of the video
+    words_status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='UPLOADED')  # status field to store the current status of the video
+    alphabets_status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='UPLOADED')  # status field to store the current status of the video
+
     def get_status_display(self):
         return dict(self.STATUS_CHOICES).get(self.status, 'Unknown')
 
