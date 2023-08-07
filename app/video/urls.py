@@ -9,13 +9,14 @@ urlpatterns = [
     path('videos/', VideoListCreateView.as_view(), name='video-list-create'),
     path('upload/', VideoUploadView.as_view(), name='upload_video'),
     path('translations/', TranslationListCreateView.as_view(), name='translation-list-create'),
-    path('run-script-live/', run_script_live, name='run-script-live'),
-    path('run-script2-live/', run_script2, name='run-script2-live'),
+    path('run-script-words-live/', run_script_words_live, name='run-script-words-live'),
+    path('run-script-alphabets-live/', run_script_alphabets_live, name='run-script-alphabets-live'),
     path('list/', VideoListView.as_view(), name='list_videos'),
-    path('process/<int:video_id>/', process_video, name='process_video'),
-    path('process2/<int:video_id>/', process_video_2, name='process_video_2'),
+    path('process_words/<int:video_id>/', process_video_words, name='process_video_words'),
+    path('process_alphabets/<int:video_id>/', process_video_alphabets, name='process_video_alphabets'),
     path('videos/<int:video_id>/delete/', delete_video, name='delete_video'),
-    path('video/<int:video_id>/transcript/', view_transcript, name='view_transcript'),
+    path('video/<int:video_id>/transcript_words/', view_transcript_words, name='view_transcript_words'),
+    path('video/<int:video_id>/transcript_alphabets/', view_transcript_alphabets, name='view_transcript_alphabets'),
 ]
 
 if settings.DEBUG:
