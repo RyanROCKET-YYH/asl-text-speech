@@ -1,3 +1,7 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import sys
+
 import cv2
 import numpy as np
 import mediapipe as mp
@@ -22,6 +26,9 @@ model.add(Dense(38, activation='softmax'))
 weight_file = 'alphabets0.h5'
 model.load_weights(weight_file)
 
+sys.path.append('afs/ece.cmu.edu/usr/hanqid/Public/asl-text-speech/app')     # change the path to your project path
+os.environ['DJANGO_SETTINGS_MODULE'] = 'asl_text_speech.settings'  
+django.setup()
 
 def mediapipe_detection(input_image, input_model):
     input_image = cv2.cvtColor(input_image, cv2.COLOR_BGR2RGB)
@@ -156,9 +163,9 @@ def associat(input):
             return word.upper()
     return input.upper()
 
-
-# cap = cv2.VideoCapture(0)  # cap is the webcam
-cap = cv2.VideoCapture("D:\\asl-text-speech\\test - Trim.mp4")
+video_file_path = sys.argv[1]  # Replace with the actual path of your video file
+video_id = int(sys.argv[2])
+cap = cv2.VideoCapture(video_file_path)
 # access the mediapipe model as holistic
 alphabets = np.array(
     ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W',
@@ -175,23 +182,33 @@ with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=
     association = ''
     association_left = ''
 
+    flag = 0
     while cap.isOpened():  # while webcam is open, keep the loop
         ret, frame = cap.read()  # read the cap
+        if flag < 4:
+            flag += 1
+            continue
+        flag = 0
+        if frame is None:
+            break
         image, results = mediapipe_detection(frame, holistic)
-        draw_landmarks(frame, results)
+        #draw_landmarks(frame, results)
+        if results.right_hand_landmarks:
+            keypoints = extract_keypoints(results)
+            res = model.predict(keypoints.reshape(1, 63, 1), verbose=0)
+            sign = alphabets[np.argmax(res)]
 
-        keypoints = extract_keypoints(results)
-        keypoints_left = extract_keypoints_left(results)
-        res = model.predict(keypoints.reshape(1, 63, 1))
-        res_left = model.predict(keypoints_left.reshape(1, 63, 1))
 
-        sign = alphabets[np.argmax(res)]
-        if np.array_equal(keypoints, np.zeros(63)):
+        if results.left_hand_landmarks:
+            keypoints_left = extract_keypoints_left(results)
+            res_left = model.predict(keypoints_left.reshape(1, 63, 1), verbose=0)
+            sign_left = alphabets[np.argmax(res_left)]
+
+        if not results.right_hand_landmarks:
             sign = ' '
         if sign == last:
             count = count + 1
-            if count == 10:
-                print(sign)
+            if count == 5:
                 if sign == ' ' and word != '':
                     old_word = word
                     word = correct(word)
@@ -199,32 +216,30 @@ with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=
                     curr_sign += word
                     word = ''
                     association = ''
-                if cv2.waitKey(10) & 0xFF == 127 and sign == ' ':
-                    words = curr_sign.split()
-                    if len(words) > 0:
-                        words.pop()  # Remove the last word
-                        new_sentence = " ".join(words)
-                        curr_sign = new_sentence.join(old_word)
+                # if cv2.waitKey(10) & 0xFF == 127 and sign == ' ':
+                #     words = curr_sign.split()
+                #     if len(words) > 0:
+                #         words.pop()  # Remove the last word
+                #         new_sentence = " ".join(words)
+                #         curr_sign = new_sentence.join(old_word)
                 if sign != ' ':
                     word += sign
-                if len(word) >= 3:
-                    association = associat(word)
-        if cv2.waitKey(10) & 0xFF == 13:
-            curr_sign += association
-            curr_sign += ' '
-            word = ''
-            association = ''
+                # if len(word) >= 3:
+                #     association = associat(word)
+        # if cv2.waitKey(10) & 0xFF == 13:
+        #     curr_sign += association
+        #     curr_sign += ' '
+        #     word = ''
+        #     association = ''
         if sign != last:
             count = 1
             last = sign
 
-        sign_left = alphabets[np.argmax(res_left)]
-        if np.array_equal(keypoints_left, np.zeros(63)):
+        if not results.left_hand_landmarks:
             sign_left = ' '
         if sign_left == last_left:
             count_left = count_left + 1
             if count_left == 10:
-                print(sign_left)
                 if sign_left == ' ' and word_left != '':
                     word_left = correct(word_left)
                     curr_sign_left += word_left
@@ -233,25 +248,27 @@ with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=
                     association_left = ''
                 if sign_left != ' ':
                     word_left += sign_left
-                if len(word_left) >= 3:
-                    association_left = associat(word_left)
-        if cv2.waitKey(10) & 0xFF == 13:
-            curr_sign_left += association_left
-            curr_sign_left += ' '
-            word_left = ''
-            association_left = ''
+                # if len(word_left) >= 3:
+                #     association_left = associat(word_left)
+        # if cv2.waitKey(10) & 0xFF == 13:
+        #     curr_sign_left += association_left
+        #     curr_sign_left += ' '
+        #     word_left = ''
+        #     association_left = ''
         if sign_left != last_left:
             count_left = 1
             last_left = sign_left
 
-        cv2.putText(frame, curr_sign_left + word_left, (120, 200), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 4,
-                    cv2.LINE_AA)
-        cv2.putText(frame, curr_sign + word, (120, 250), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 4, cv2.LINE_AA)
-        cv2.putText(frame, association_left, (120, 300), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 4, cv2.LINE_AA)
-        cv2.putText(frame, association, (120, 350), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 4, cv2.LINE_AA)
+        #cv2.putText(frame, curr_sign_left + word_left, (120, 200), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 4,
+        #            cv2.LINE_AA)
+        #cv2.putText(frame, curr_sign + word, (120, 250), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 4, cv2.LINE_AA)
+        #cv2.putText(frame, association_left, (120, 300), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 4, cv2.LINE_AA)
+        #cv2.putText(frame, association, (120, 350), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 4, cv2.LINE_AA)
 
-        cv2.imshow('OpenCV Feed', frame)  # show the frame
+        #cv2.imshow('OpenCV Feed', frame)  # show the frame
+
         if cv2.waitKey(10) & 0xFF == ord('q'):
             break
+    print(curr_sign)
     cap.release()
     cv2.destroyAllWindows()
