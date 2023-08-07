@@ -119,31 +119,80 @@ def process_video(request, video_id):
     }
     return JsonResponse(response)
 
-def run_script2(request):
+def run_script_2(video_file_path, video_id):
+    # Assuming script_directory and script_path are set correctly
     current_directory = os.path.dirname(os.path.abspath(__file__)) 
     script_directory = os.path.join(current_directory, 'alphabets')
     script_path = os.path.join(script_directory, 'main.py')
 
-    try:
-        # Change the working directory to the location of the script
-        os.chdir(script_directory)
+    # Change the working directory to the location of the script
+    os.chdir(script_directory)
 
-        result = subprocess.run(['python', script_path], capture_output=True, text=True)
-        output = result.stdout
-        error = result.stderr
-        response = {
-            'output': output,
-            'error': error
-        }
-        return JsonResponse(response)
-    except subprocess.CalledProcessError as e:
-        response = {
-            'error': str(e)
-        }
-        return JsonResponse(response, status=500)
-    finally:
-        # Change the working directory back to its original location
-        os.chdir(current_directory)
+    result = subprocess.run(['python', script_path, video_file_path, str(video_id)], capture_output=True, text=True)
+    output = result.stdout
+    error = result.stderr
+
+    # Change the working directory back to its original location
+    os.chdir(current_directory)
+
+    return output, error
+
+@login_required
+def process_video_2(request, video_id):
+    # Get the video from the database
+    video = Video.objects.get(id=video_id)
+    # Make sure the video belongs to the currently logged-in user
+    if video.user != request.user:
+            messages.error(request, "You do not have permission to process this video.")
+            return HttpResponseRedirect(reverse('list_videos'))
+    
+    if video.status == 'COMPLETED':
+        return JsonResponse({
+            'output': video.transcript,
+            'error': None
+        })
+    
+    # Get the path of the video file
+    video_file_path = video.video_file.path
+
+    video.status = 'PROCESSING'
+    video.save()
+
+    # Run the script on the video
+    output, error = run_script_2(video_file_path, video_id)
+
+    if error:
+        video.status = 'FAILED'
+    else:
+        video.status = 'COMPLETED'
+        video.transcript = output
+
+    # Save processed video or other details here if required
+    video.save()
+
+    response = {
+        'output': output,
+        'error': error
+    }
+    return JsonResponse(response)
+
+def run_script_live_2(request):
+    # Assuming script_directory and script_path are set correctly
+    current_directory = os.path.dirname(os.path.abspath(__file__)) 
+    script_directory = os.path.join(current_directory, 'alphabets')
+    script_path = os.path.join(script_directory, 'main_live.py')
+
+    # Change the working directory to the location of the script
+    os.chdir(script_directory)
+
+    result = subprocess.run(['python', script_path, video_file_path], capture_output=True, text=True)
+    output = result.stdout
+    error = result.stderr
+
+    # Change the working directory back to its original location
+    os.chdir(current_directory)
+
+    return output, error
 
 class VideoUploadView(View):
     def get(self, request):
