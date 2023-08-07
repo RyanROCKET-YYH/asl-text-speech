@@ -89,7 +89,7 @@ def process_video(request, video_id):
             messages.error(request, "You do not have permission to process this video.")
             return HttpResponseRedirect(reverse('list_videos'))
     
-    if video.status == 'COMPLETED':
+    if video.status == 'COMPLETED' and request.POST.get('reprocess') != "true":
         return JsonResponse({
             'output': video.transcript,
             'error': None
