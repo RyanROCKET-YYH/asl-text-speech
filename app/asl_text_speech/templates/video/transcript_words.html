@@ -8,7 +8,7 @@
 <body>
     <h1>Transcript for {{ video.video_file.name|basename }}</h1>
     
-    <p>{{ video.transcript }}</p>
+    <p>{{ video.transcript_words }}</p>
     
     <a href="{% url 'list_videos' %}">Back to videos list</a>
 </body>

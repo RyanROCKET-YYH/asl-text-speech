@@ -49,8 +49,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'crispy_forms',
     'crispy_bootstrap5',
-    'receive_frame',
-    'corsheaders',
 ]
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
@@ -95,12 +93,12 @@ WSGI_APPLICATION = 'asl_text_speech.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'asl_text_speech',
-        'USER': 'root',
-        'PASSWORD': 'password',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'asl_text_speech_db',
+        'USER': 'asl_text_speech',
+        'PASSWORD': 'asl_text_speech',
         'HOST': 'localhost',
-        'PORT': '3306',
+        'PORT': '5432',
     }
 }
 

@@ -32,8 +32,11 @@ class Video(models.Model):
     words_status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='UPLOADED')  # status field to store the current status of the video
     alphabets_status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='UPLOADED')  # status field to store the current status of the video
 
-    def get_status_display(self):
-        return dict(self.STATUS_CHOICES).get(self.status, 'Unknown')
+    def get_words_status_display(self):
+        return dict(self.STATUS_CHOICES).get(self.words_status, 'Unknown')
+        
+    def get_alphabets_status_display(self):
+        return dict(self.STATUS_CHOICES).get(self.alphabets_status, 'Unknown')
 
 @receiver(post_delete, sender=Video)
 def submission_delete(sender, instance, **kwargs):

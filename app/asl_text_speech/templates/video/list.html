@@ -19,24 +19,40 @@
                 </video>
                 
                 <!-- Video Name and Status -->
-                {{ video.video_file.name|basename }} - <strong>Status: {{ video.get_status_display }}</strong>
+                {{ video.video_file.name|basename }} - <strong>Words Status: {{ video.get_words_status_display }}</strong> | <strong>Alphabets Status: {{ video.get_alphabets_status_display }}</strong>
 
                 <!-- Process Video Button -->
-                {% if video.status == 'UPLOADED' or video.status == 'FAILED' %}
-                <form method="POST" action="{% url 'process_video' video.id %}">
+                {% if video.words_status == 'UPLOADED' or video.words_status == 'FAILED' %}
+                <form method="POST" action="{% url 'process_video_words' video.id %}">
                         {% csrf_token %}
-                        <button type="submit">Process</button>
+                        <button type="submit">Process Words</button>
+                    </form>
+                {% endif %}
+                {% if video.alphabets_status == 'UPLOADED' or video.alphabets_status == 'FAILED' %}
+                <form method="POST" action="{% url 'process_video_alphabets' video.id %}">
+                        {% csrf_token %}
+                        <button type="submit">Process Alphabets</button>
                     </form>
                 {% endif %}
 
                 <!-- Link to View Transcript -->
-                {% if video.status == 'COMPLETED' %}
-                    <a href="{% url 'view_transcript' video.id %}">View Transcript</a> | 
+                {% if video.words_status == 'COMPLETED' %}
+                    <a href="{% url 'view_transcript_words' video.id %}">View Words Transcript</a> | 
+                {% endif %}
+                {% if video.alphabets_status == 'COMPLETED' %}
+                    <a href="{% url 'view_transcript_alphabets' video.id %}">View Alphabets Transcript</a> | 
+                {% endif %}
+                {% if video.words_status == 'COMPLETED' or video.alphabets_status == 'COMPLETED' %}
                     <!-- Form for Reprocessing -->
-                    <form method="POST" action="{% url 'process_video' video.id %}" style="display: inline;">
+                    <form method="POST" action="{% url 'process_video_words' video.id %}" style="display: inline;">
                         {% csrf_token %}
                         <input type="hidden" name="reprocess" value="true">
-                        <button type="submit" style="background: none; border: none; padding: 0; font-family: arial, sans-serif; color: #069; text-decoration: underline; cursor: pointer;">Reprocess</button>
+                        <button type="submit" style="background: none; border: none; padding: 0; font-family: arial, sans-serif; color: #069; text-decoration: underline; cursor: pointer;">Reprocess Words</button>
+                    </form>
+                    <form method="POST" action="{% url 'process_video_alphabets' video.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="reprocess" value="true">
+                        <button type="submit" style="background: none; border: none; padding: 0; font-family: arial, sans-serif; color: #069; text-decoration: underline; cursor: pointer;">Reprocess Alphabets</button>
                     </form>
                 {% endif %}
 

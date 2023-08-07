@@ -238,4 +238,15 @@ def view_transcript_words(request, video_id):
         messages.error(request, "You do not have permission to view this transcript.")
         return HttpResponseRedirect(reverse('list_videos'))
 
-    return render(request, 'video/transcript.html', {'video': video})
+    return render(request, 'video/transcript_words.html', {'video': video})
+
+@login_required
+def view_transcript_alphabets(request, video_id):
+    video = get_object_or_404(Video, id=video_id)
+    
+    # Ensure the logged-in user owns this video
+    if video.user != request.user:
+        messages.error(request, "You do not have permission to view this transcript.")
+        return HttpResponseRedirect(reverse('list_videos'))
+
+    return render(request, 'video/transcript_alphabets.html', {'video': video})

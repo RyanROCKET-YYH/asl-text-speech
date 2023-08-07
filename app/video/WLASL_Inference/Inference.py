@@ -9,7 +9,7 @@ import sys
 import os
 import django
 
-sys.path.append('/afs/ece.cmu.edu/usr/hanqid/Public/asl-text-speech/app')     # change the path to your project path
+sys.path.append('D:\\asl-text-speech\\app')     # change the path to your project path
 os.environ['DJANGO_SETTINGS_MODULE'] = 'asl_text_speech.settings'  
 django.setup()
 
@@ -58,12 +58,12 @@ if __name__ == '__main__':
 
     num_classes = 100
 
-    file = pd.read_csv("/afs/ece.cmu.edu/usr/hanqid/Public/asl-text-speech/app/video/WLASL_Inference/dataset/wlasl_class_list.txt", sep='\t', header=None)
+    file = pd.read_csv("dataset\wlasl_class_list.txt", sep='\t', header=None)
     # file = pd.read_csv("D:\\asl-text-speech\\app\\video\WLASL_Inference\dataset\wlasl_class_list.txt", sep='\t', header=None)
     all_words = file[1].tolist()
     glosses = all_words[:num_classes]
 
-    weights = '/afs/ece.cmu.edu/usr/hanqid/Public/asl-text-speech/app/video/WLASL_Inference/weights/nslt_100.pt'
+    weights = 'weights\\nslt_100.pt'
     # weights = 'D:\\asl-text-speech\\app\\video\WLASL_Inference\weights\\nslt_100.pt'
     i3d = load_model(weights, num_classes)
 
