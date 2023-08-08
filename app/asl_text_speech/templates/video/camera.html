@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Camera Access</title>
+</head>
+<body>
+    <h1>Camera Access Example</h1>
+    <button onclick="startCamera()">Open Camera</button>
+    <button onclick="stopCamera()">Close Camera</button>
+    <video id="videoElement" width="640" height="480" autoplay style="display: none;"></video>
+    <script>
+        let stream;
+
+        async function startCamera() {
+            try {
+                const constraints = { video: true };
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                const videoElement = document.getElementById('videoElement');
+                videoElement.srcObject = stream;
+                videoElement.style.display = 'block';
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+            }
+        }
+
+        function stopCamera() {
+            if (stream) {
+                const tracks = stream.getTracks();
+                tracks.forEach(track => track.stop());
+                const videoElement = document.getElementById('videoElement');
+                videoElement.srcObject = null;
+                videoElement.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

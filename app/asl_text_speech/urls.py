@@ -15,6 +15,7 @@ urlpatterns = [
     path('contact/', views.contact, name='contact'),
     path('page-404/', views.error_404, name='error_404'),
     path('logout/', LogoutView.as_view(next_page='index'), name='logout'),
+    path('camera/', views.camera_view, name='camera'),
 ]
 
 urlpatterns = urlpatterns + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

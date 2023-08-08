@@ -13,3 +13,6 @@ def contact(request):
 
 def error_404(request):
     return render(request, 'page-404.html')
+
+def camera_view(request):
+    return render(request, 'camera.html')

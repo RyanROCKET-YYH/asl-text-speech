@@ -71,14 +71,19 @@ def run_script_words_live(request):
     # Change the working directory to the location of the script
     os.chdir(script_directory)
 
-    result = subprocess.run(['python', script_path, video_file_path], capture_output=True, text=True)
+    result = subprocess.run(['python', script_path], capture_output=True, text=True)
     output = result.stdout
     error = result.stderr
 
     # Change the working directory back to its original location
     os.chdir(current_directory)
 
-    return output, error
+    response = {
+        'output': output,
+        'error': error
+    }
+
+    return JsonResponse(response)
 
 @login_required
 def process_video_words(request, video_id):
@@ -192,7 +197,12 @@ def run_script_alphabets_live(request):
     # Change the working directory back to its original location
     os.chdir(current_directory)
 
-    return output, error
+    response = {
+        'output': output,
+        'error': error
+    }
+
+    return JsonResponse(response)
 
 class VideoUploadView(View):
     def get(self, request):
