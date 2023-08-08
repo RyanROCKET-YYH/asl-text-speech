@@ -45,7 +45,6 @@ class RunMLModelView(APIView):
         return Response({'result': result})
 
 def run_script_words(video_file_path, video_id):
-    # Assuming script_directory and script_path are set correctly
     current_directory = os.path.dirname(os.path.abspath(__file__)) 
     script_directory = os.path.join(current_directory, 'WLASL_Inference')
     script_path = os.path.join(script_directory, 'Inference.py')
@@ -63,7 +62,6 @@ def run_script_words(video_file_path, video_id):
     return output, error
 
 def run_script_words_live(request):
-    # Assuming script_directory and script_path are set correctly
     current_directory = os.path.dirname(os.path.abspath(__file__)) 
     script_directory = os.path.join(current_directory, 'WLASL_Inference')
     script_path = os.path.join(script_directory, 'Inference_live.py')
@@ -120,7 +118,6 @@ def process_video_words(request, video_id):
     return JsonResponse(response)
 
 def run_script_alphabets(video_file_path, video_id):
-    # Assuming script_directory and script_path are set correctly
     current_directory = os.path.dirname(os.path.abspath(__file__)) 
     script_directory = os.path.join(current_directory, 'alphabets')
     script_path = os.path.join(script_directory, 'main.py')
@@ -161,11 +158,16 @@ def process_video_alphabets(request, video_id):
     # Run the script on the video
     output, error = run_script_alphabets(video_file_path, video_id)
 
-    if error:
+    # Check if error contains non-critical message
+    is_non_critical_error = "INFO: Created TensorFlow Lite XNNPACK delegate for CPU." in error
+
+    # Adjust condition to ignore non-critical errors
+    if error and not is_non_critical_error:
         video.alphabets_status = 'FAILED'
     else:
         video.alphabets_status = 'COMPLETED'
         video.transcript_alphabets = output
+
 
     # Save processed video or other details here if required
     video.save()
@@ -177,7 +179,6 @@ def process_video_alphabets(request, video_id):
     return JsonResponse(response)
 
 def run_script_alphabets_live(request):
-    # Assuming script_directory and script_path are set correctly
     current_directory = os.path.dirname(os.path.abspath(__file__)) 
     script_directory = os.path.join(current_directory, 'alphabets')
     script_path = os.path.join(script_directory, 'main_live.py')
