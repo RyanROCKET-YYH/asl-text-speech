@@ -9,6 +9,23 @@ import cv2
 import pandas as pd
 import base64
 
+def pad(img):
+    max_size = max(img.shape)
+    top = int((max_size-img.shape[0])/2)
+    bot = int((max_size-img.shape[0])/2)
+    left = int((max_size-img.shape[1])/2)
+    right = int((max_size-img.shape[1])/2)
+    return cv2.copyMakeBorder(img, top, bot, left, right, cv2.BORDER_CONSTANT, None, value = 0)
+
+def center_crop(img):
+    center = img.shape
+    w = 224
+    h = 224
+    x = center[1]/2 - w/2
+    y = center[0]/2 - h/2
+
+    return img[int(y):int(y+h), int(x):int(x+w)]
+
 def process_sequence(frames):
     np_frames = np.asarray(frames, dtype=np.float32)
     r = np_frames[:, :, :, 0]
@@ -59,11 +76,13 @@ async def handle_client(websocket, path):
             if not data:
                 break
 
-            full_data += data.encode()  # Convert string data to bytes and append to the buffer
-            print('Receiving frame')
+            d = data.encode()
+            #print('data: ', d)
+            full_data += d  # Convert string data to bytes and append to the buffer
 
             # Try to decode the received data as an image
             try:
+                #print("full data: ", full_data)
                 # Decode Base64 data to raw bytes
                 if full_data.startswith(b'data:image/jpeg;base64,'):
                     base64_data = full_data[len(b'data:image/jpeg;base64,'):]
@@ -71,33 +90,19 @@ async def handle_client(websocket, path):
                     np_data = np.frombuffer(decoded_data, dtype='uint8')
                 else:
                     # If the data is not in the expected format, skip this frame
+                    full_data = bytearray()
                     continue
                 frame = ((cv2.imdecode(np_data, cv2.IMREAD_COLOR)) / 225) * 2 - 1
+                # print("frame: ", frame)
 
                 if frame is not None:
                     # Process the frame
-                    def pad(img):
-                        max_size = max(img.shape)
-                        top = int((max_size-img.shape[0])/2)
-                        bot = int((max_size-img.shape[0])/2)
-                        left = int((max_size-img.shape[1])/2)
-                        right = int((max_size-img.shape[1])/2)
-                        return cv2.copyMakeBorder(img, top, bot, left, right, cv2.BORDER_CONSTANT, None, value = 0)
-
-                    def center_crop(img):
-                        center = img.shape
-                        w = 224
-                        h = 224
-                        x = center[1]/2 - w/2
-                        y = center[0]/2 - h/2
-
-                        return img[int(y):int(y+h), int(x):int(x+w)]
-
                     frame = pad(frame)
                     frame = cv2.resize(frame, dsize=(256, 256))
                     frame = center_crop(frame)
 
                     sequence.append(frame)
+                    #print("Detected frame, frame count: ", frame_count)
 
                     # Make predictions
                     if len(sequence) == 40 and frame_count%4 == 0:
@@ -108,14 +113,16 @@ async def handle_client(websocket, path):
                             if len(transcript) > 0:
                                 if word != transcript[-1]:
                                     transcript.append(word)
+                                    print("printing out 1")
                             else:
                                 transcript.append(word)
+                                print("printing out 2")
                     sequence = sequence[-39:]
 
                         # Send the predicted word back to the client
                         #await websocket.send(word)
                     frame_count+=1
-                    full_data = bytearray()  # Clear the buffer for the next frame
+                full_data = bytearray()  # Clear the buffer for the next frame
             except cv2.error as e:
                 print(f"Error processing frame: {e}")
             except Exception as e:
