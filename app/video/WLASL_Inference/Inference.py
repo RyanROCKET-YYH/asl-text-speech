@@ -9,7 +9,7 @@ import sys
 import os
 import django
 
-sys.path.append('afs/ece.cmu.edu/usr/hanqid/Public/asl-text-speech/app')     # change the path to your project path
+sys.path.append('afs/ece.cmu.edu/usr/hanqid/Public/be/asl-text-speech/app')     # change the path to your project path
 os.environ['DJANGO_SETTINGS_MODULE'] = 'asl_text_speech.settings'  
 django.setup()
 
