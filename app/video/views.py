@@ -71,14 +71,19 @@ def run_script_words_live(request):
     # Change the working directory to the location of the script
     os.chdir(script_directory)
 
-    result = subprocess.run(['python', script_path, video_file_path], capture_output=True, text=True)
+    result = subprocess.run(['python', script_path], capture_output=True, text=True)
     output = result.stdout
     error = result.stderr
 
     # Change the working directory back to its original location
     os.chdir(current_directory)
 
-    return output, error
+    response = {
+        'output': output,
+        'error': error
+    }
+
+    return JsonResponse(response)
 
 @login_required
 def process_video_words(request, video_id):
@@ -161,11 +166,16 @@ def process_video_alphabets(request, video_id):
     # Run the script on the video
     output, error = run_script_alphabets(video_file_path, video_id)
 
-    if error:
+    # Check if error contains non-critical message
+    is_non_critical_error = "INFO: Created TensorFlow Lite XNNPACK delegate for CPU." in error
+
+    # Adjust condition to ignore non-critical errors
+    if error and not is_non_critical_error:
         video.alphabets_status = 'FAILED'
     else:
         video.alphabets_status = 'COMPLETED'
         video.transcript_alphabets = output
+
 
     # Save processed video or other details here if required
     video.save()
@@ -185,14 +195,19 @@ def run_script_alphabets_live(request):
     # Change the working directory to the location of the script
     os.chdir(script_directory)
 
-    result = subprocess.run(['python', script_path, video_file_path], capture_output=True, text=True)
+    result = subprocess.run(['python', script_path], capture_output=True, text=True)
     output = result.stdout
     error = result.stderr
 
     # Change the working directory back to its original location
     os.chdir(current_directory)
 
-    return output, error
+    response = {
+        'output': output,
+        'error': error
+    }
+
+    return JsonResponse(response)
 
 class VideoUploadView(View):
     def get(self, request):

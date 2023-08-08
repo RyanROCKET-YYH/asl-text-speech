@@ -7,7 +7,7 @@ mp_drawing = mp.solutions.drawing_utils
 
 from keras.models import Sequential
 from keras.layers import Dense, Conv1D, Flatten
-
+import django
 
 
 model = Sequential()
@@ -22,6 +22,9 @@ model.add(Dense(38, activation='softmax'))
 weight_file = 'alphabets0.h5'
 model.load_weights(weight_file)
 
+sys.path.append('D:\\asl-text-speech\\app')     # change the path to your project path
+os.environ['DJANGO_SETTINGS_MODULE'] = 'asl_text_speech.settings'  
+django.setup()
 
 def mediapipe_detection(input_image, input_model):
     input_image = cv2.cvtColor(input_image, cv2.COLOR_BGR2RGB)
