@@ -167,11 +167,14 @@ async def server_process(websocket, path):
         count = 0
         curr_sign = ' '
         word = ''
+        old = ''
         full_data = bytearray()
 
         try:
             while True:  # while webcam is open, keep the loop
-                await websocket.send(curr_sign)
+                if curr_sign != old:
+                    await websocket.send(curr_sign)
+                old = curr_sign
 
                 data = await websocket.recv()
                 if not data:
