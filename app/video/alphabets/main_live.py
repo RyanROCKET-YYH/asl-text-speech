@@ -3,6 +3,7 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import base64
 import sys
+import time
 
 import cv2
 import numpy as np
@@ -195,8 +196,10 @@ async def handle_client(websocket, path, stop_event):
                         continue
 
                     frame = cv2.imdecode(np_data, cv2.IMREAD_COLOR)
-
+                    start=0
                     if frame is not None:
+                        print("start not 0")
+                        start=time.time()
                         image, results = mediapipe_detection(frame, holistic)
 
                         if results.right_hand_landmarks:
@@ -222,6 +225,8 @@ async def handle_client(websocket, path, stop_event):
                             count = 1
                             last = sign
                     full_data = bytearray()
+                    end = time.time()
+                    print(end-start)
 
                 except cv2.error as e:
                     print(f"Error processing frame: {e}")
@@ -247,7 +252,6 @@ async def main():
 # Run the main event loop
 if __name__ == '__main__':
     asyncio.run(main())
-
 
 
 

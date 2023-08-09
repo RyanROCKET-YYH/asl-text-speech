@@ -54,6 +54,7 @@
 
                                 async function startStream() {
                                     try {
+                                        predictionDiv.textContent = "Opening camera...";
                                         // Call the API for alphabets translation here
                                         // fetch('{% url "transcript_alpha" %}', {
                                         //     method: 'POST' // Use POST method if required by your API
@@ -116,10 +117,10 @@
                                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
                                     const maxDimension = Math.min(canvas.width, canvas.height);
-                                    const scaleFactor = 256 / maxDimension;
+                                    // const scaleFactor = 320 / maxDimension;
 
-                                    const resizedWidth = Math.round(canvas.width * scaleFactor);
-                                    const resizedHeight = Math.round(canvas.height * scaleFactor);
+                                    const resizedWidth = Math.round(canvas.width * 0.5);
+                                    const resizedHeight = Math.round(canvas.height * 0.5);
 
                                     // Create a new canvas for the resized image
                                     const resizedCanvas = document.createElement('canvas');
@@ -144,6 +145,8 @@
                                 function handlePrediction(prediction) {
                                 console.log('Received prediction from server:', prediction);
                                 predictionDiv.textContent = `Prediction: ${prediction}`;
+                                predictionDiv.style.fontWeight = 'bold';
+                                predictionDiv.style.fontSize = 'larger';
                                 }
 
                                 function initWebSocket() {

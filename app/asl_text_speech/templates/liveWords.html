@@ -136,7 +136,7 @@
                                         // Resize the image while maintaining aspect ratio
                                         resizedCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, resizedWidth, resizedHeight);
 
-                                        const imageData = canvas.toDataURL('image/jpeg', 0.5);
+                                        const imageData = resizedCanvas.toDataURL('image/jpeg', 0.5);
                                         //console.log(imageData)
 
                                         if (websocket.readyState === WebSocket.OPEN) {
@@ -144,7 +144,7 @@
                                         }
 
                                         // Send frames every 100ms (adjust as needed)
-                                        setTimeout(sendFrames, 100);
+                                        setTimeout(sendFrames, 30);
                                     }
 
                                     function handlePrediction(prediction) {
