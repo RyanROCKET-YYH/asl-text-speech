@@ -48,7 +48,7 @@ def load_model(weights, num_classes):
     i3d = InceptionI3d(400, in_channels=3)
     i3d.replace_logits(num_classes)
     i3d.load_state_dict(torch.load(weights, map_location=torch.device('cpu')))
-    # i3d.cuda()
+    i3d.cuda()
     i3d = nn.DataParallel(i3d)
     i3d.eval()
 
