@@ -69,8 +69,8 @@ if __name__ == '__main__':
 
     sequence = []
     sentence = []
-    frame_number = 0  # Counter for the current frame number
-    threshold = 0.85
+    threshold = 0.90
+    frame_count = 0
     word = ""
 
     video_file_path = sys.argv[1]  # Get the video file path from the command-line arguments
@@ -101,14 +101,12 @@ if __name__ == '__main__':
                 if len(sentence) > 0: 
                     if word != sentence[-1]:
                         sentence.append(word)
-                        # print(f"Frame {frame_number}: {word}")
+
                 else:
                     sentence.append(word)
-                    # print(f"Frame {frame_number}: {word}")
 
             
-            frame_number += 1  # Increase the frame counter
+            frame_count += 1
             
-    # print(sentence)
     # Get the video instance and update its transcript field
     print(' '.join(sentence))
