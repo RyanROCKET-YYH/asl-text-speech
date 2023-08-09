@@ -68,29 +68,44 @@
                                 <button type="submit" class="btn btn-primary btn-icon btn-inner--text">Process Words</button>
                             </form>
                             <div id="output-container"></div>
-                            <!-- Add this in the <head> section of your HTML -->
                             <script>
                                 document.addEventListener('DOMContentLoaded', function () {
-                                const processForm = document.getElementById('process-form');
-                                const outputContainer = document.getElementById('output-container');
-                                processForm.addEventListener('submit', async function (event) {
-                                    event.preventDefault(); // Prevent the default form submission behavior
-                                    try {
-                                        const response = await fetch(processForm.action, {
-                                            method: 'POST',
-                                            body: new FormData(processForm)
-                                        });
-                                        if (!response.ok) {
-                                            throw new Error('API request failed');
+                                    const processForm = document.getElementById('process-form');
+                                    const outputContainer = document.getElementById('output-container');
+                            
+                                    processForm.addEventListener('submit', async function (event) {
+                                        event.preventDefault(); // Prevent the default form submission behavior
+                            
+                                        try {
+                                            const response = await fetch(processForm.action, {
+                                                method: 'POST',
+                                                body: new FormData(processForm)
+                                            });
+                            
+                                            if (!response.ok) {
+                                                throw new Error('API request failed');
+                                            }
+                            
+                                            const data = await response.text();
+                                            const { output } = parseApiResponse(data); // Extract the "output" part
+                            
+                                            // Wrap the API response in a <div> element and apply styling
+                                            outputContainer.innerHTML = `<div style="font-weight: bold; font-size: larger;">${output}</div>`;                                        } catch (error) {
+                                            console.error(error);
                                         }
-                                        const data = await response.text();
-                                        outputContainer.innerHTML = data;
-                                    } catch (error) {
-                                        console.error(error);
+                                    });
+                                    // Function to parse the API response (extracts output)
+                                    function parseApiResponse(responseData) {
+                                        try {
+                                            return JSON.parse(responseData);
+                                        } catch (error) {
+                                            console.error('Error parsing API response:', error);
+                                            return { output: '', error: '' };
+                                        }
                                     }
                                 });
-                            });
                             </script>
+                            
                         </div>
                         {% endif %}
                         {% if video.alphabets_status == 'UPLOADED' or video.alphabets_status == 'FAILED' %}
@@ -104,10 +119,10 @@
     
                         <!-- Link to View Transcript -->
                         {% if video.words_status == 'COMPLETED' %}
-                        <a href="{% url 'view_transcript_words' video.id %}">View Words Transcript</a> |
+                        <a href="{% url 'view_transcript_words' video.id %}" class="btn btn-primary btn-icon btn-inner--text">View Words Transcript</a>
                         {% endif %}
                         {% if video.alphabets_status == 'COMPLETED' %}
-                        <a href="{% url 'view_transcript_alphabets' video.id %}">View Alphabets Transcript</a> |
+                        <a href="{% url 'view_transcript_alphabets' video.id %}" class="btn btn-primary btn-icon btn-inner--text">View Alphabets Transcript</a> |
                         {% endif %}
                         {% if video.words_status == 'COMPLETED' or video.alphabets_status == 'COMPLETED' %}
                         <!-- Form for Reprocessing -->
