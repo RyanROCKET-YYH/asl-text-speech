@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Live Stream Processing</title>
+</head>
+<body>
+  <h1>Live Stream Processing</h1>
+  <video id="video" width="640" height="480" autoplay></video>
+  <canvas id="canvas" style="display:none;"></canvas>
+  <button id="startButton">Start Processing</button>
+  <button id="stopButton" style="display:none;">Stop Processing</button>
+  <div id="prediction">Predicted word: </div>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const startButton = document.getElementById('startButton');
+    const stopButton = document.getElementById('stopButton');
+    const predictionDiv = document.getElementById('prediction');
+    let isStreaming = false;
+    let websocket;
+
+    const constraints = {
+      audio: false,
+      video: {
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+    };
+
+    async function startStream() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            video.srcObject = stream;
+            video.onloadedmetadata = () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            isStreaming = true;
+            startButton.style.display = 'none';
+            stopButton.style.display = 'block';
+            initWebSocket();
+            sendFrames();
+            console.log('Camera stream started.');
+            };
+        } catch (error) {
+            console.error('Error accessing webcam:', error);
+        }
+        }
+
+
+    function stopStream() {
+      if (video.srcObject) {
+        video.srcObject.getTracks().forEach((track) => track.stop());
+        video.srcObject = null;
+        isStreaming = false;
+        startButton.style.display = 'block';
+        stopButton.style.display = 'none';
+        if (websocket) {
+          websocket.close();
+          console.log('WebSocket connection closed.');
+        }
+      }
+    }
+
+    function sendFrames() {
+        if (!isStreaming) {
+            return;
+        }
+
+        const ctx = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const maxDimension = Math.max(canvas.width, canvas.height);
+        const scaleFactor = 256 / maxDimension;
+
+        const resizedWidth = Math.round(canvas.width * scaleFactor);
+        const resizedHeight = Math.round(canvas.height * scaleFactor);
+
+        // Create a new canvas for the resized image
+        const resizedCanvas = document.createElement('canvas');
+        resizedCanvas.width = resizedWidth;
+        resizedCanvas.height = resizedHeight;
+        const resizedCtx = resizedCanvas.getContext('2d');
+
+        // Resize the image while maintaining aspect ratio
+        resizedCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, resizedWidth, resizedHeight);
+
+        const imageData = resizedCanvas.toDataURL('image/jpeg', 0.8);
+        console.log(imageData)
+
+        if (websocket.readyState === WebSocket.OPEN) {
+            websocket.send(imageData);
+        }
+
+        // Send frames every 100ms (adjust as needed)
+        setTimeout(sendFrames, 30);
+    }
+
+
+    function handlePrediction(prediction) {
+      console.log('Received prediction from server:', prediction);
+      predictionDiv.textContent = `Predicted word: ${prediction}`;
+    }
+
+    function initWebSocket() {
+      websocket = new WebSocket('ws://172.19.138.16:4000');
+
+      websocket.onopen = () => {
+        console.log('WebSocket connection established.');
+      };
+
+      websocket.onmessage = (event) => {
+        const prediction = event.data;
+        handlePrediction(prediction);
+      };
+
+      websocket.onclose = () => {
+        console.log('WebSocket connection closed.');
+      };
+    }
+
+    startButton.addEventListener('click', startStream);
+    stopButton.addEventListener('click', stopStream);
+  </script>
+</body>
+</html>
