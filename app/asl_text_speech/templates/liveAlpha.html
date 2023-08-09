@@ -1,0 +1,150 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Home {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+    <!-- Main content -->
+    <section class="slice py-7">
+        <div class="container">
+            <div class="row row-grid align-items-center">
+                <div class="col-12 col-md-5 col-lg-6 order-md-2 text-center">
+                    <!-- Image -->
+                    <figure class="w-100">
+                        <img alt="Image placeholder" src="/static/assets/img/index-card3.svg" class="img-fluid mw-md-120">
+                    </figure>
+                </div>
+                <div class="col-12 col-md-7 col-lg-6 order-md-1 pr-md-5">
+                    <!-- Heading -->
+                    <h1 class="display-4 text-center text-md-left mb-3">
+                        <a  target="" 
+                            href="#">
+                            <strong class="text-primary">Alphabets Translation</strong> 
+                        </a>    
+                    </h1>
+                    <div class="text-center text-md-left mt-5">
+                        <!-- Modify the HREF below to add the api for the live translation -->
+                        <a class="btn btn-primary btn-icon" target="">
+                            <span class="btn-inner--text" id="startButton" style="color: white;">Live Translation<i class="fas fa-chevron-right" style="margin-left: 8px;"></i></span>
+                            <span class="btn-inner--text" id="stopButton" style="color: white; display:none;">Stop Processing<i class="fas fa-times" style="margin-left: 8px;"></i></span>
+                        </a>                        
+                        <div>
+                            <div id="prediction" style="margin-top: 10px;">Start the live translation to generate Text...</div>
+                            <video id="video" width="640" height="480" autoplay></video>
+                            <canvas id="canvas" style="display:none;"></canvas>
+                            <script>
+                                const video = document.getElementById('video');
+                                const canvas = document.getElementById('canvas');
+                                const startButton = document.getElementById('startButton');
+                                const stopButton = document.getElementById('stopButton');
+                                const predictionDiv = document.getElementById('prediction');
+                                let isStreaming = false;
+                                let websocket;
+
+                                const constraints = {
+                                audio: false,
+                                video: {
+                                    width: { ideal: 1280 },
+                                    height: { ideal: 720 },
+                                },
+                                };
+
+                                async function startStream() {
+                                    try {
+                                        // Call the API for alphabets translation here
+                                        fetch('{% url "transcript_alpha" %}', {
+                                            method: 'POST' // Use POST method if required by your API
+                                        });
+                                        // Delay navigation to the translation URL for a few seconds
+                                        setTimeout(async function() {
+                                            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                                            video.srcObject = stream;
+                                            isStreaming = true;
+                                            startButton.style.display = 'none';
+                                            stopButton.style.display = 'block';
+                                            predictionDiv.textContent = "Predicting: ";
+                                            const processingIcon = document.createElement("i");
+                                            processingIcon.classList.add("fas", "fa-circle-notch", "fa-spin", "ml-2");
+                                            predictionDiv.appendChild(processingIcon);
+                                            initWebSocket();
+                                            sendFrames();
+                                            console.log('Camera stream started.');
+                                        }, 5000); // Adjust the delay time (in milliseconds) as needed
+                                    } catch (error) {
+                                        console.error('Error accessing webcam:', error);
+                                    }
+                                }
+
+                                function stopStream() {
+                                if (video.srcObject) {
+                                    video.srcObject.getTracks().forEach((track) => track.stop());
+                                    video.srcObject = null;
+                                    isStreaming = false;
+                                    startButton.style.display = 'block';
+                                    stopButton.style.display = 'none';
+                                    if (websocket) {
+                                    websocket.close();
+                                    console.log('WebSocket connection closed.');
+                                    }
+                                }
+                                }
+
+                                function sendFrames() {
+                                    if (!isStreaming) {
+                                        return;
+                                    }
+
+                                    const ctx = canvas.getContext('2d');
+                                    canvas.width = video.videoWidth;
+                                    canvas.height = video.videoHeight;
+                                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                                    const imageData = canvas.toDataURL('image/jpeg', 0.8);
+
+                                    if (websocket.readyState === WebSocket.OPEN) {
+                                        websocket.send(imageData);
+                                    }
+
+                                    // Send frames every 100ms (adjust as needed)
+                                    setTimeout(sendFrames, 100);
+                                }
+
+                                function handlePrediction(prediction) {
+                                console.log('Received prediction from server:', prediction);
+                                predictionDiv.textContent = `Prediction: ${prediction}`;
+                                }
+
+                                function initWebSocket() {
+                                websocket = new WebSocket('ws://172.19.138.16:4001');
+
+                                websocket.onopen = () => {
+                                    console.log('WebSocket connection established.');
+                                };
+
+                                websocket.onmessage = (event) => {
+                                    const prediction = event.data;
+                                    handlePrediction(prediction);
+                                };
+
+                                websocket.onclose = () => {
+                                    console.log('WebSocket connection closed.');
+                                };
+                                }
+
+                                startButton.addEventListener('click', startStream);
+                                stopButton.addEventListener('click', stopStream);
+                            </script>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

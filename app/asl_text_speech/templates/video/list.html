@@ -1,73 +1,124 @@
 <!-- video/list.html -->
+{% extends "layouts/base.html" %}
+{% block title %} Home {% endblock %} 
 {% load videoname_filter %}
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+{% block content %}
+<section class="slice py-7">
+    <div class="container">
+        <div class="row row-grid align-items-center">
+            <div class="col-12 col-md-5 col-lg-6 order-md-2 text-center">
+                <!-- Image -->
+                <figure class="w-100">
+                    <img alt="Image placeholder" src="/static/assets/img/index-card1.svg" class="img-fluid mw-md-120">
+                </figure>
+            </div>
+            <div class="col-12 col-md-7 col-lg-6 order-md-1 pr-md-5">
+                <!-- Heading -->
+                <h1 class="display-4 text-center text-md-left mb-3">
+                    <a  target="" 
+                        href="{% url 'about' %}">
+                        <strong class="text-primary"><center>Upload and Generate Transcripts</center></strong> 
+                    </a>    
+                </h1>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>My Videos</title>
-</head>
-<body>
-    <h1>My Videos</h1>
-
-    <ul>
-        {% for video in videos %}
-            <li>
-                <!-- Video Preview -->
-                <video width="320" height="240" controls>
-                    <source src="{{ video.video_file.url }}" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
+                <div class="text-center text-md-left mt-5">
+                    <div class="d-md-none mb-3">
+                        <div class="d-inline-block"> <!-- Center align for mobile view -->
+                            <a href="{% url 'upload_video' %}" class="btn btn-primary btn-icon" target="">
+                                <span class="btn-inner--text">Upload New Video</span>
+                                <span class="btn-inner--icon"><i data-feather="chevron-right"></i></span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="d-none d-md-block">
+                        <div class="d-inline-block"> <!-- Center align for medium and larger screens -->
+                            <a href="{% url 'upload_video' %}" class="btn btn-primary btn-icon" target="">
+                                <span class="btn-inner--text">Upload New Video</span>
+                                <span class="btn-inner--icon"><i data-feather="chevron-right"></i></span>
+                            </a>
+                        </div>
+                    </div>
+                </div>                
                 
-                <!-- Video Name and Status -->
-                {{ video.video_file.name|basename }} - <strong>Words Status: {{ video.get_words_status_display }}</strong> | <strong>Alphabets Status: {{ video.get_alphabets_status_display }}</strong>
 
-                <!-- Process Video Button -->
-                {% if video.words_status == 'UPLOADED' or video.words_status == 'FAILED' %}
-                <form method="POST" action="{% url 'process_video_words' video.id %}">
-                        {% csrf_token %}
-                        <button type="submit">Process Words</button>
-                    </form>
-                {% endif %}
-                {% if video.alphabets_status == 'UPLOADED' or video.alphabets_status == 'FAILED' %}
-                <form method="POST" action="{% url 'process_video_alphabets' video.id %}">
-                        {% csrf_token %}
-                        <button type="submit">Process Alphabets</button>
-                    </form>
-                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row row-grid align-items-center">    
+            <ul>
+                {% for video in videos %}
+                    <li>
+                        <!-- Video Preview -->
+                        <video width="320" height="240" controls>
+                            <source src="{{ video.video_file.url }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+    
+                        <!-- Video Name and Status -->
+                        {{ video.video_file.name|basename }} - <strong>Words Status: {{ video.get_words_status_display }}</strong> | <strong>Alphabets Status: {{ video.get_alphabets_status_display }}</strong>
+    
+                        <!-- Process Video Button -->
+                        {% if video.words_status == 'UPLOADED' or video.words_status == 'FAILED' %}
+                        <div style="text-align: center; margin: 10px;">
+                            <form method="POST" action="{% url 'process_video_words' video.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-icon btn-inner--text">Process Words</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                        {% if video.alphabets_status == 'UPLOADED' or video.alphabets_status == 'FAILED' %}
+                        <div style="text-align: center; margin: 10px;">
+                            <form method="POST" action="{% url 'process_video_alphabets' video.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-icon btn-inner--text">Process Alphabets</button>
+                            </form>
+                        </div>
+                        {% endif %}
+    
+                        <!-- Link to View Transcript -->
+                        {% if video.words_status == 'COMPLETED' %}
+                        <a href="{% url 'view_transcript_words' video.id %}">View Words Transcript</a> |
+                        {% endif %}
+                        {% if video.alphabets_status == 'COMPLETED' %}
+                        <a href="{% url 'view_transcript_alphabets' video.id %}">View Alphabets Transcript</a> |
+                        {% endif %}
+                        {% if video.words_status == 'COMPLETED' or video.alphabets_status == 'COMPLETED' %}
+                        <!-- Form for Reprocessing -->
+                        <div style="text-align: center; margin: 10px;">
+                            <form method="POST" action="{% url 'process_video_words' video.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="reprocess" value="true">
+                                <button type="submit" style="background: none; border: none; padding: 0; font-family: arial, sans-serif; color: #069; text-decoration: underline; cursor: pointer;">Reprocess Words</button>
+                            </form>
+                            <form method="POST" action="{% url 'process_video_alphabets' video.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="reprocess" value="true">
+                                <button type="submit" style="background: none; border: none; padding: 0; font-family: arial, sans-serif; color: #069; text-decoration: underline; cursor: pointer;">Reprocess Alphabets</button>
+                            </form>
+                        </div>
+                        {% endif %}
+    
+                        <!-- Delete Video Button -->
+                        <div style="text-align: center; margin: 10px;">
+                            <form method="POST" action="{% url 'delete_video' video.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="_method" value="DELETE">
+                                <button type="submit" class="btn btn-primary btn-icon btn-inner--text">Delete</button>
+                            </form>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    
+    
+</section>
 
-                <!-- Link to View Transcript -->
-                {% if video.words_status == 'COMPLETED' %}
-                    <a href="{% url 'view_transcript_words' video.id %}">View Words Transcript</a> | 
-                {% endif %}
-                {% if video.alphabets_status == 'COMPLETED' %}
-                    <a href="{% url 'view_transcript_alphabets' video.id %}">View Alphabets Transcript</a> | 
-                {% endif %}
-                {% if video.words_status == 'COMPLETED' or video.alphabets_status == 'COMPLETED' %}
-                    <!-- Form for Reprocessing -->
-                    <form method="POST" action="{% url 'process_video_words' video.id %}" style="display: inline;">
-                        {% csrf_token %}
-                        <input type="hidden" name="reprocess" value="true">
-                        <button type="submit" style="background: none; border: none; padding: 0; font-family: arial, sans-serif; color: #069; text-decoration: underline; cursor: pointer;">Reprocess Words</button>
-                    </form>
-                    <form method="POST" action="{% url 'process_video_alphabets' video.id %}" style="display: inline;">
-                        {% csrf_token %}
-                        <input type="hidden" name="reprocess" value="true">
-                        <button type="submit" style="background: none; border: none; padding: 0; font-family: arial, sans-serif; color: #069; text-decoration: underline; cursor: pointer;">Reprocess Alphabets</button>
-                    </form>
-                {% endif %}
+{% endblock content %}
 
-                <!-- Delete Video Button -->
-                <form method="POST" action="{% url 'delete_video' video.id %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="_method" value="DELETE">
-                    <button type="submit">Delete</button>
-                </form>
-            </li>
-        {% empty %}
-            <li>No videos uploaded.</li>
-        {% endfor %}
-    </ul>
-
-    <a href="{% url 'upload_video' %}">Upload another video</a>
-</body>
-</html>
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

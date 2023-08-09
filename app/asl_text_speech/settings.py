@@ -96,7 +96,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'asl_text_speech',
         'USER': 'root',
-        'PASSWORD': 'password',
+        'PASSWORD': 'abcd',
         'HOST': 'localhost',
         'PORT': '3306',
     }
