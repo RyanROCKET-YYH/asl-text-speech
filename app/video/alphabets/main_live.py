@@ -1,32 +1,21 @@
+
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import base64
 import sys
 
 import cv2
 import numpy as np
 import mediapipe as mp
 from socket import socket, gethostbyname, AF_INET, SOCK_DGRAM, SOCK_STREAM
-
-mp_holistic = mp.solutions.holistic
-mp_drawing = mp.solutions.drawing_utils
-
+import asyncio
+import websockets
 from keras.models import Sequential
 from keras.layers import Dense, Conv1D, Flatten
 
 
-
-model = Sequential()
-model.add(Conv1D(32, kernel_size=3, activation='relu', input_shape=(63, 1)))
-
-model.add(Conv1D(64, kernel_size=3, activation='relu'))
-
-model.add(Flatten())
-
-model.add(Dense(38, activation='softmax'))
-
-weight_file = 'alphabets0.h5'
-model.load_weights(weight_file)
-
+mp_holistic = mp.solutions.holistic
+mp_drawing = mp.solutions.drawing_utils
 
 def mediapipe_detection(input_image, input_model):
     input_image = cv2.cvtColor(input_image, cv2.COLOR_BGR2RGB)
@@ -44,7 +33,6 @@ def draw_landmarks(input_image, input_results):
     mp_drawing.draw_landmarks(input_image, input_results.right_hand_landmarks, mp_holistic.HAND_CONNECTIONS,
                               mp_drawing.DrawingSpec(color=(80, 117, 10), thickness=2, circle_radius=4),
                               mp_drawing.DrawingSpec(color=(80, 66, 122), thickness=2, circle_radius=2))
-
 
 def extract_keypoints(input_result):
     x = np.array([[res.x] for res in
@@ -77,7 +65,6 @@ def extract_keypoints_left(results):
 
 
 import collections
-
 
 def distance(w1, w2):
     l1 = len(w1)
@@ -142,11 +129,6 @@ with open("lemma.num", "r") as file:
         parts = line.split()
         word_num[parts[2].lower()] = parts[1]
 
-# wrong_word = "6orld"
-# print(correct(wrong_word))
-# wrong_word = "helo"
-# print(correct(wrong_word))
-
 word_list = []
 with open("lemma.num", "r") as file:
     for line in file:
@@ -162,143 +144,118 @@ def associat(input):
     return input.upper()
 
 
-alphabets = np.array(
-    ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W',
-     'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'del', 'space'])
+async def server_process(websocket, path, stop_event):
+    print(f"Client connected from {websocket.remote_address}")
 
+    model = Sequential()
+    model.add(Conv1D(32, kernel_size=3, activation='relu', input_shape=(63, 1)))
+    model.add(Conv1D(64, kernel_size=3, activation='relu'))
+    model.add(Flatten())
+    model.add(Dense(38, activation='softmax'))
+    weight_file = 'alphabets0.h5'
+    model.load_weights(weight_file)
 
-host = '172.19.138.16' #Server ip
-#host = 'localhost'
-port = 4001
+    alphabets = np.array(
+        ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
+         'W',
+         'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'del', 'space'])
 
-sock = socket(AF_INET, SOCK_STREAM)
-sock.bind((host, port))
-
-# Listen for incoming connections
-sock.listen(1)
-
-with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
-    last = ''
-    last_left = ''
-    count = 0
-    count_left = 0
-    curr_sign = ' '
-    curr_sign_left = ' '
-    word = ''
-    word_left = ''
-    association = ''
-    association_left = ''
-    full_data = bytearray()
-
-    while True:  # while webcam is open, keep the loop
-
-        print(sys.stderr, 'waiting for a connection')
-        connection, client_address = sock.accept()
+    with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
+        last = ''
+        count = 0
+        curr_sign = ' '
+        word = ''
+        old = ''
+        full_data = bytearray()
 
         try:
-            # print(sys.stderr, 'connection from', client_address)
-            stream_flag = connection.recv(16)
-            stream_flag = stream_flag.decode()
+            while True:  # while webcam is open, keep the loop
+                if curr_sign != old:
+                    print('sent')
+                    await websocket.send(curr_sign)
+                old = curr_sign
 
-            if stream_flag == '0':
-                break
+                data = await websocket.recv()
+                if not data:
+                    continue
+                # print("data: ", data)
+                d = data.encode()
+                full_data += d
 
-            connection.sendall(bytes(curr_sign, 'utf-8'))
-            #connection.sendall(bytes(curr_sign_left, 'utf-8'))
+                try:
+                    # print("full data: ", full_data)
+                    # Decode Base64 data to raw bytes
+                    if full_data.startswith(b'data:image/jpeg;base64,'):
+                        base64_data = full_data[len(b'data:image/jpeg;base64,'):]
+                        decoded_data = base64.b64decode(base64_data)
+                        np_data = np.frombuffer(decoded_data, dtype='uint8')
+                    else:
+                        # If the data is not in the expected format, skip this frame
+                        full_data = bytearray()
+                        continue
 
-            while True:
-                data = connection.recv(800000)
+                    frame = cv2.imdecode(np_data, cv2.IMREAD_COLOR)
 
-                if data:
-                    full_data.extend(data)
-                    print(sys.stderr, 'Receiving frame')
-                else:
-                    print(sys.stderr, 'Finish receiving frame', client_address)
-                    if stream_flag != 0:
-                        full_data = np.frombuffer(full_data, dtype='uint8')
-                        frame = cv2.imdecode(full_data, cv2.IMREAD_COLOR)
+                    if frame is not None:
+                        image, results = mediapipe_detection(frame, holistic)
 
+                        if results.right_hand_landmarks:
+                            keypoints = extract_keypoints(results)
+                            res = model.predict(keypoints.reshape(1, 63, 1), verbose=0)
+                            sign = alphabets[np.argmax(res)]
 
-                    image, results = mediapipe_detection(frame, holistic)
-                    # draw_landmarks(frame, results)
-                    if results.right_hand_landmarks:
-                        keypoints = extract_keypoints(results)
-                        res = model.predict(keypoints.reshape(1, 63, 1), verbose=0)
-                        sign = alphabets[np.argmax(res)]
+                        if not results.right_hand_landmarks:
+                            sign = ' '
+                        if sign == last:
+                            count = count + 1
+                            if count == 5:
+                                if sign == ' ' and word != '':
+                                    word = correct(word)
+                                    word += ' '
+                                    curr_sign += word
+                                    word = ''
 
-                    if results.left_hand_landmarks:
-                        keypoints_left = extract_keypoints_left(results)
-                        res_left = model.predict(keypoints_left.reshape(1, 63, 1), verbose=0)
-                        sign_left = alphabets[np.argmax(res_left)]
+                                if sign != ' ':
+                                    word += sign
 
-                    if not results.right_hand_landmarks:
-                        sign = ' '
-                    if sign == last:
-                        count = count + 1
-                        if count == 5:
-                            if sign == ' ' and word != '':
-                                old_word = word
-                                word = correct(word)
-                                word += ' '
-                                curr_sign += word
-                                word = ''
-                                association = ''
-                            # if cv2.waitKey(10) & 0xFF == 127 and sign == ' ':
-                            #     words = curr_sign.split()
-                            #     if len(words) > 0:
-                            #         words.pop()  # Remove the last word
-                            #         new_sentence = " ".join(words)
-                            #         curr_sign = new_sentence.join(old_word)
-                            if sign != ' ':
-                                word += sign
-                            # if len(word) >= 3:
-                            #     association = associat(word)
-                    # if cv2.waitKey(10) & 0xFF == 13:
-                    #     curr_sign += association
-                    #     curr_sign += ' '
-                    #     word = ''
-                    #     association = ''
-                    if sign != last:
-                        count = 1
-                        last = sign
-
-                    if not results.left_hand_landmarks:
-                        sign_left = ' '
-                    if sign_left == last_left:
-                        count_left = count_left + 1
-                        if count_left == 10:
-                            if sign_left == ' ' and word_left != '':
-                                word_left = correct(word_left)
-                                curr_sign_left += word_left
-                                curr_sign_left += ' '
-                                word_left = ''
-                                association_left = ''
-                            if sign_left != ' ':
-                                word_left += sign_left
-                            # if len(word_left) >= 3:
-                            #     association_left = associat(word_left)
-                    # if cv2.waitKey(10) & 0xFF == 13:
-                    #     curr_sign_left += association_left
-                    #     curr_sign_left += ' '
-                    #     word_left = ''
-                    #     association_left = ''
-                    if sign_left != last_left:
-                        count_left = 1
-                        last_left = sign_left
-
-                    # cv2.putText(frame, curr_sign_left + word_left, (120, 200), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 4,
-                    #            cv2.LINE_AA)
-                    # cv2.putText(frame, curr_sign + word, (120, 250), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 4, cv2.LINE_AA)
-                    # cv2.putText(frame, association_left, (120, 300), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 4, cv2.LINE_AA)
-                    # cv2.putText(frame, association, (120, 350), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 4, cv2.LINE_AA)
-
-                    # cv2.imshow('OpenCV Feed', frame)  # show the frame
+                        if sign != last:
+                            count = 1
+                            last = sign
                     full_data = bytearray()
-                    break
-        finally:
-            # Close connections
-            connection.close()
-            if stream_flag == '0':
-                break
 
-    cv2.destroyAllWindows()
+                except cv2.error as e:
+                    print(f"Error processing frame: {e}")
+                except Exception as e:
+                    print(f"Error occurred: {e}")
+        except websockets.ConnectionClosedError:
+            print(f"Connection closed by {websocket.remote_address}")
+        except Exception as e:
+            print(f"Error occurred: {e}")
+        finally:
+            stop_event.set()
+
+async def main():
+    # Start the WebSocket server
+    stop_event = asyncio.Event()
+    server = await websockets.serve(lambda ws, path: handle_client(ws, path, stop_event), '172.19.138.16', 4001)
+    print('WebSocket server started.')
+
+    await stop_event.wait() 
+    server.close() 
+    await server.wait_closed()
+
+# Run the main event loop
+if __name__ == '__main__':
+    asyncio.run(main())
+
+
+
+
+
+
+
+
+
+
+
+

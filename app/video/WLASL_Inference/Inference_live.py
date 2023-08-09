@@ -47,7 +47,7 @@ def load_model(weights, num_classes):
     i3d.eval()
     return i3d
 
-async def handle_client(websocket, path):
+async def handle_client(websocket, path, stop_event):
     print(f"Client connected from {websocket.remote_address}")
 
     # Load the model and other setup tasks
@@ -131,12 +131,18 @@ async def handle_client(websocket, path):
         print(f"Connection closed by {websocket.remote_address}")
     except Exception as e:
         print(f"Error occurred: {e}")
+    finally:
+        stop_event.set()
 
 async def main():
     # Start the WebSocket server
-    async with websockets.serve(handle_client, '172.19.138.16', 4000):
-        print('WebSocket server started.')
-        await asyncio.Future()  # Run forever
+    stop_event = asyncio.Event()
+    server = await websockets.serve(lambda ws, path: handle_client(ws, path, stop_event), '172.19.138.16', 4000)
+    print('WebSocket server started.')
+
+    await stop_event.wait() 
+    server.close() 
+    await server.wait_closed()
 
 # Run the main event loop
 if __name__ == '__main__':
