@@ -16,27 +16,17 @@
                     <li class="nav-item dropdown dropdown-animate" data-toggle="hover">
                         <a class="nav-link" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Pages</a>
                         <div class="dropdown-menu dropdown-menu-single">
-                            <a href="/"             class="dropdown-item">Homepage</a>
-                            <!-- <a href="{% url 'about' %}"   class="dropdown-item">About us</a> -->
-                            <!-- <a href="{% url 'contact' %}" class="dropdown-item">Contact</a> -->
-                            <div class="dropdown-divider"></div>
-                            <!-- <a href="/page-login.html"    class="dropdown-item">Login</a>
-                            <a href="/page-register.html" class="dropdown-item">Register</a> -->
+                            <a href="/" class="dropdown-item">Homepage</a>
                             <a href="{% url 'about' %}"   class="dropdown-item">About us</a>
-                            <!-- <a href="{% url 'error_404' %}" class="dropdown-item">Error 404</a> -->
                         </div>
                     </li>
-                    <!-- <li class="nav-item ">
-                        <a class="nav-link" 
-                           target="_blank" rel="noopener noreferrer" 
-                           href="https://appseed.us/apps/flask-apps/flask-illustrations-iradesign" >Product</a>
-                    </li> -->
                 </ul>
+                
                 <!-- Button -->
                 {% if request.user.is_authenticated %}
                     <a class="navbar-btn btn btn-sm btn-primary d-none d-lg-inline-block ml-3" 
                         href="{% url 'logout' %}">
-                        Logout
+                        Logout {{ request.user.username }}
                     </a>
                 {% else %}
                     <ul class="navbar-nav mt-4 mt-lg-0 ml-4">
@@ -51,45 +41,12 @@
                 {% endif %}
                 
                 <!-- Mobile button -->
-                <div class="d-lg-none text-center">
-                    <a href="https://appseed.us/apps/flask-apps/flask-illustrations-iradesign" 
-                       target="_blank" rel="noopener noreferrer"
-                       class="btn btn-block btn-sm btn-warning">See more details</a>
-                </div>
+                {% if request.user.is_authenticated %}
+                    <div class="d-lg-none text-center" style="margin-top: 20px;">
+                        <a href="{% url 'logout' %}" rel="noopener noreferrer" class="btn btn-block btn-sm btn-warning">Logout {{ request.user.username }}</a>
+                    </div>
+                {% endif %}
+
             </div>
         </div>
     </nav>
-
-    <!-- {% load static %}
-
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Your App</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
-</head>
-<body>
-    <header>
-        <div class="login-signup">
-            {% if request.user.is_authenticated %}
-                Hello, {{ request.user.username }} | <a href="{% url 'logout' %}">Logout</a>
-            {% else %}
-                <a href="{% url 'login' %}">Login</a> | <a href="{% url 'signup' %}">Sign Up</a>
-            {% endif %}
-        </div>
-    </header>
-    
-
-    <main>
-        <div class="logo-container">
-            <img src="{% static 'img/logo.png' %}" alt="Logo">
-        </div>
-        <a href="{% url 'video-list-create' %}">Videos</a>
-        <a href="{% url 'translation-list-create' %}">Translations</a>
-        <a href="{% url 'run-script-words-live' %}">Run Script</a>
-        <a href="{% url 'run-script-alphabets-live' %}">Run Script 2</a>
-        <a href="/users/users/">User List/Create</a>
-        <a href="/users/profiles/">User Profile List/Create</a>
-    </main>
-</body>
-</html> -->

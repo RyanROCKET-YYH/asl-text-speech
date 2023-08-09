@@ -11,6 +11,7 @@ mp_drawing = mp.solutions.drawing_utils
 
 from keras.models import Sequential
 from keras.layers import Dense, Conv1D, Flatten
+import django
 
 
 
@@ -26,7 +27,7 @@ model.add(Dense(38, activation='softmax'))
 weight_file = 'alphabets0.h5'
 model.load_weights(weight_file)
 
-sys.path.append('afs/ece.cmu.edu/usr/hanqid/Public/asl-text-speech/app')     # change the path to your project path
+sys.path.append('/afs/ece.cmu.edu/usr/hanqid/Public/asl-text-speech/app')     # change the path to your project path
 os.environ['DJANGO_SETTINGS_MODULE'] = 'asl_text_speech.settings'  
 django.setup()
 
@@ -143,11 +144,6 @@ with open("lemma.num", "r") as file:
     for line in file:
         parts = line.split()
         word_num[parts[2].lower()] = parts[1]
-
-wrong_word = "6orld"
-print(correct(wrong_word))
-wrong_word = "helo"
-print(correct(wrong_word))
 
 word_list = []
 with open("lemma.num", "r") as file:

@@ -52,9 +52,9 @@ async def handle_client(websocket, path, stop_event):
 
     # Load the model and other setup tasks
     num_classes = 100
-    weights = '/afs/ece.cmu.edu/usr/hanqid/Public/asl-text-speech/WLASL_Inference/weights/nslt_100.pt'
+    weights = '/afs/ece.cmu.edu/usr/hanqid/Public/asl-text-speech/app/video/WLASL_Inference/weights/nslt_100.pt'
     i3d = load_model(weights, num_classes)
-    file = pd.read_csv("/afs/ece.cmu.edu/usr/hanqid/Public/asl-text-speech/WLASL_Inference/dataset/wlasl_class_list.txt", sep='\t', header=None)
+    file = pd.read_csv("/afs/ece.cmu.edu/usr/hanqid/Public/asl-text-speech/app/video/WLASL_Inference/dataset/wlasl_class_list.txt", sep='\t', header=None)
     all_words = file[1].tolist()
     glosses = all_words[:num_classes]
 
