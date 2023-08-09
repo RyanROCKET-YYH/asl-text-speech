@@ -55,9 +55,21 @@
                                 async function startStream() {
                                     try {
                                         // Call the API for words translation here
-                                        fetch('{% url "transcript_words" %}', {
-                                        method: 'POST' // Use POST method if required by your API
-                                    });
+                                        // fetch('{% url "transcript_words" %}', {
+                                        //     method: 'POST' // Use POST method if required by your API
+                                        // });
+
+                                        fetch('{% url "transcript_words" %}')
+                                            .then(response => response.json())
+                                            .then(data => {
+                                                // Handle the fetched data
+                                                console.log(data);
+                                            })
+                                            .catch(error => {
+                                                // Handle errors
+                                                console.error('Error:', error);
+                                        });
+                                    
                                     // Delay navigation to the translation URL for a few seconds
                                     setTimeout(async function() {
                                         const stream = await navigator.mediaDevices.getUserMedia(constraints);
