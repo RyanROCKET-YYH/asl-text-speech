@@ -169,7 +169,7 @@ async def handle_client(websocket, path, stop_event):
         full_data = bytearray()
 
         try:
-            while True:  # while webcam is open, keep the loop
+            while not stop_event.is_set():  # while webcam is open, keep the loop
                 if curr_sign != old:
                     print('sent')
                     await websocket.send(curr_sign)

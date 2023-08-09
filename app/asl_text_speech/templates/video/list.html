@@ -63,10 +63,34 @@
                         <!-- Process Video Button -->
                         {% if video.words_status == 'UPLOADED' or video.words_status == 'FAILED' %}
                         <div style="text-align: center; margin: 10px;">
-                            <form method="POST" action="{% url 'process_video_words' video.id %}">
+                            <form id="process-form" method="POST" action="{% url 'process_video_words' video.id %}">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-primary btn-icon btn-inner--text">Process Words</button>
                             </form>
+                            <div id="output-container"></div>
+                            <!-- Add this in the <head> section of your HTML -->
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function () {
+                                const processForm = document.getElementById('process-form');
+                                const outputContainer = document.getElementById('output-container');
+                                processForm.addEventListener('submit', async function (event) {
+                                    event.preventDefault(); // Prevent the default form submission behavior
+                                    try {
+                                        const response = await fetch(processForm.action, {
+                                            method: 'POST',
+                                            body: new FormData(processForm)
+                                        });
+                                        if (!response.ok) {
+                                            throw new Error('API request failed');
+                                        }
+                                        const data = await response.text();
+                                        outputContainer.innerHTML = data;
+                                    } catch (error) {
+                                        console.error(error);
+                                    }
+                                });
+                            });
+                            </script>
                         </div>
                         {% endif %}
                         {% if video.alphabets_status == 'UPLOADED' or video.alphabets_status == 'FAILED' %}
@@ -91,12 +115,12 @@
                             <form method="POST" action="{% url 'process_video_words' video.id %}" style="display: inline;">
                                 {% csrf_token %}
                                 <input type="hidden" name="reprocess" value="true">
-                                <button type="submit" style="background: none; border: none; padding: 0; font-family: arial, sans-serif; color: #069; text-decoration: underline; cursor: pointer;">Reprocess Words</button>
+                                <button type="submit" class="btn btn-primary btn-icon btn-inner--text">Reprocess Words</button>
                             </form>
                             <form method="POST" action="{% url 'process_video_alphabets' video.id %}" style="display: inline;">
                                 {% csrf_token %}
                                 <input type="hidden" name="reprocess" value="true">
-                                <button type="submit" style="background: none; border: none; padding: 0; font-family: arial, sans-serif; color: #069; text-decoration: underline; cursor: pointer;">Reprocess Alphabets</button>
+                                <button type="submit" class="btn btn-primary btn-icon btn-inner--text">Reprocess Alphabets</button>
                             </form>
                         </div>
                         {% endif %}

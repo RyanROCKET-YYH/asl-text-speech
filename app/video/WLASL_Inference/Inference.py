@@ -101,14 +101,14 @@ if __name__ == '__main__':
                 if len(sentence) > 0: 
                     if word != sentence[-1]:
                         sentence.append(word)
-                        print(f"Frame {frame_number}: {word}")
+                        # print(f"Frame {frame_number}: {word}")
                 else:
                     sentence.append(word)
-                    print(f"Frame {frame_number}: {word}")
+                    # print(f"Frame {frame_number}: {word}")
 
             
             frame_number += 1  # Increase the frame counter
             
-    print(sentence)
+    # print(sentence)
     # Get the video instance and update its transcript field
     print(' '.join(sentence))

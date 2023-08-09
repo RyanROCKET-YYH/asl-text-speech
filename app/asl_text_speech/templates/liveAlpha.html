@@ -47,21 +47,34 @@
                                 const constraints = {
                                 audio: false,
                                 video: {
-                                    width: { ideal: 1280 },
-                                    height: { ideal: 720 },
+                                    width: { ideal: 800 },
+                                    height: { ideal: 600 },
                                 },
                                 };
 
                                 async function startStream() {
                                     try {
                                         // Call the API for alphabets translation here
-                                        fetch('{% url "transcript_alpha" %}', {
-                                            method: 'POST' // Use POST method if required by your API
+                                        // fetch('{% url "transcript_alpha" %}', {
+                                        //     method: 'POST' // Use POST method if required by your API
+                                        // });
+
+                                        fetch('{% url "transcript_alpha" %}')
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            // Handle the fetched data
+                                            console.log(data);
+                                        })
+                                        .catch(error => {
+                                            // Handle errors
+                                            console.error('Error:', error);
                                         });
                                         // Delay navigation to the translation URL for a few seconds
                                         setTimeout(async function() {
                                             const stream = await navigator.mediaDevices.getUserMedia(constraints);
                                             video.srcObject = stream;
+                                            canvas.width = video.videoWidth;
+                                            canvas.height = video.videoHeight;
                                             isStreaming = true;
                                             startButton.style.display = 'none';
                                             stopButton.style.display = 'block';
@@ -98,11 +111,27 @@
                                     }
 
                                     const ctx = canvas.getContext('2d');
-                                    canvas.width = video.videoWidth;
-                                    canvas.height = video.videoHeight;
+                                    canvas.width = 800;
+                                    canvas.height = 600;
                                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                                    const imageData = canvas.toDataURL('image/jpeg', 0.8);
+                                    const maxDimension = Math.min(canvas.width, canvas.height);
+                                    const scaleFactor = 256 / maxDimension;
+
+                                    const resizedWidth = Math.round(canvas.width * scaleFactor);
+                                    const resizedHeight = Math.round(canvas.height * scaleFactor);
+
+                                    // Create a new canvas for the resized image
+                                    const resizedCanvas = document.createElement('canvas');
+                                    resizedCanvas.width = resizedWidth;
+                                    resizedCanvas.height = resizedHeight;
+                                    const resizedCtx = resizedCanvas.getContext('2d');
+
+                                    // Resize the image while maintaining aspect ratio
+                                    resizedCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, resizedWidth, resizedHeight);
+
+                                    const imageData = resizedCanvas.toDataURL('image/jpeg', 0.5);
+                                    //console.log(imageData)
 
                                     if (websocket.readyState === WebSocket.OPEN) {
                                         websocket.send(imageData);
