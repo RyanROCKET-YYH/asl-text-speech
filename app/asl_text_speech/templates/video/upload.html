@@ -1,5 +1,43 @@
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Upload</button>
-</form>
+<!-- video/upload.html -->
+<!-- video/list.html -->
+{% extends "layouts/base.html" %}
+{% block title %} Upload {% endblock %} 
+{% load videoname_filter %}
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+{% block content %}
+<section class="slice py-7">
+    <div class="container">
+        <div class="row row-grid align-items-center">
+            <div class="col-12 col-md-5 col-lg-6 order-md-2 text-center">
+                <!-- Image -->
+                <figure class="w-100">
+                    <img alt="Image placeholder" src="/static/assets/img/index-card1.svg" class="img-fluid mw-md-120">
+                </figure>
+            </div>
+            <div class="col-12 col-md-7 col-lg-6 order-md-1 pr-md-5">
+                <!-- Heading -->
+                <h1 class="display-4 text-center text-md-left mb-3">
+                    <a  target="" 
+                        href="{% url 'about' %}">
+                        <strong class="text-primary"><center>Upload Video</center></strong> 
+                    </a>    
+                </h1>    
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-primary btn-icon btn-inner--text">Upload</button>
+                </form>
+            
+                <a href="{% url 'list_videos' %}"><i>View Uploaded Videos --></i></a>  
+            </div>
+        </div>
+    </div>
+    
+    
+</section>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

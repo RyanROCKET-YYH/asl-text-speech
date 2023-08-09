@@ -14,8 +14,18 @@ urlpatterns = [
     path('about/', views.about, name='about'),
     path('contact/', views.contact, name='contact'),
     path('page-404/', views.error_404, name='error_404'),
+    path('text2asl/', views.text2asl, name='text2asl'),
+    path('transcript/', views.transcript, name='transcript'),
+    path('liveAlpha/', views.liveAlpha, name='liveAlpha'),
+    path('liveWords/', views.liveWords, name='liveWords'),
+    path('live/', views.live, name='live'),
+    path('camera/', views.camera, name='camera'),
+    path('home/', views.home, name='home'),
+    path('list/', views.list, name='list'),
+    path('upload/', views.upload, name='upload'),
+    path('transcript_alpha/', views.run_script_alphabets_live_, name='transcript_alpha'),
+    path('transcript_words/', views.run_script_words_live_, name='transcript_words'),
     path('logout/', LogoutView.as_view(next_page='index'), name='logout'),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns = urlpatterns + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

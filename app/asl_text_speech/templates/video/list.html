@@ -1,0 +1,202 @@
+<!-- video/list.html -->
+{% extends "layouts/base.html" %}
+{% block title %} Home {% endblock %} 
+{% load videoname_filter %}
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+{% block content %}
+<section class="slice py-7">
+    <div class="container">
+        <div class="row row-grid align-items-center">
+            <div class="col-12 col-md-5 col-lg-6 order-md-2 text-center">
+                <!-- Image -->
+                <figure class="w-100">
+                    <img alt="Image placeholder" src="/static/assets/img/index-card1.svg" class="img-fluid mw-md-120">
+                </figure>
+            </div>
+            <div class="col-12 col-md-7 col-lg-6 order-md-1 pr-md-5">
+                <!-- Heading -->
+                <h1 class="display-4 text-center text-md-left mb-3">
+                    <a  target="" 
+                        href="{% url 'about' %}">
+                        <strong class="text-primary"><center>Upload and Generate Transcripts</center></strong> 
+                    </a>    
+                </h1>
+​
+                <div class="text-center text-md-left mt-5">
+                    <div class="d-md-none mb-3">
+                        <div class="d-inline-block"> <!-- Center align for mobile view -->
+                            <a href="{% url 'upload_video' %}" class="btn btn-primary btn-icon" target="">
+                                <span class="btn-inner--text">Upload New Video</span>
+                                <span class="btn-inner--icon"><i data-feather="chevron-right"></i></span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="d-none d-md-block">
+                        <div class="d-inline-block"> <!-- Center align for medium and larger screens -->
+                            <a href="{% url 'upload_video' %}" class="btn btn-primary btn-icon" target="">
+                                <span class="btn-inner--text">Upload New Video</span>
+                                <span class="btn-inner--icon"><i data-feather="chevron-right"></i></span>
+                            </a>
+                        </div>
+                    </div>
+                </div>                
+                
+​
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row row-grid align-items-center">    
+            <ul>
+                {% for video in videos %}
+                    <li>
+                        <!-- Video Preview -->
+                        <video width="320" height="240" controls>
+                            <source src="{{ video.video_file.url }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+    
+                        <!-- Video Name and Status -->
+                        {{ video.video_file.name|basename }} - <strong>Words Status: {{ video.get_words_status_display }}</strong> | <strong>Alphabets Status: {{ video.get_alphabets_status_display }}</strong>
+    
+                        <!-- Process Video Button -->
+                        {% if video.words_status == 'UPLOADED' or video.words_status == 'FAILED' %}
+                        <div style="text-align: center; margin: 10px;">
+                            <form id="process-form" method="POST" action="{% url 'process_video_words' video.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-icon btn-inner--text">Process Words</button>
+                            </form>
+                            <div id="output-container"></div>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function () {
+                                    const processForm = document.getElementById('process-form');
+                                    const outputContainer = document.getElementById('output-container');
+                            
+                                    processForm.addEventListener('submit', async function (event) {
+                                        event.preventDefault(); // Prevent the default form submission behavior
+                            
+                                        try {
+                                            const response = await fetch(processForm.action, {
+                                                method: 'POST',
+                                                body: new FormData(processForm)
+                                            });
+                            
+                                            if (!response.ok) {
+                                                throw new Error('API request failed');
+                                            }
+                            
+                                            const data = await response.text();
+                                            const { output } = parseApiResponse(data); // Extract the "output" part
+                            
+                                            // Wrap the API response in a <div> element and apply styling
+                                            outputContainer.innerHTML = `<div style="font-weight: bold; font-size: larger;">Result: ${output}</div>`;                                        } catch (error) {
+                                            console.error(error);
+                                        }
+                                    });
+                                    // Function to parse the API response (extracts output)
+                                    function parseApiResponse(responseData) {
+                                        try {
+                                            return JSON.parse(responseData);
+                                        } catch (error) {
+                                            console.error('Error parsing API response:', error);
+                                            return { output: '', error: '' };
+                                        }
+                                    }
+                                });
+                            </script>
+                            
+                        </div>
+                        {% endif %}
+                        {% if video.alphabets_status == 'UPLOADED' or video.alphabets_status == 'FAILED' %}
+                        <div style="text-align: center; margin: 10px;">
+                            <form id="alphabet-process-form" method="POST" action="{% url 'process_video_alphabets' video.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-icon btn-inner--text">Process Alphabets</button>
+                            </form>
+                            <div id="output-container-alphabet"></div>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function () {
+                                    const alphaProcessForm = document.getElementById('alphabet-process-form');
+                                    const alphaOutputContainer = document.getElementById('output-container-alphabet');
+                            
+                                    alphaProcessForm.addEventListener('submit', async function (event) {
+                                        event.preventDefault(); // Prevent the default form submission behavior
+                            
+                                        try {
+                                            const response = await fetch(alphaProcessForm.action, {
+                                                method: 'POST',
+                                                body: new FormData(alphaProcessForm)
+                                            });
+                            
+                                            if (!response.ok) {
+                                                throw new Error('API request failed');
+                                            }
+                            
+                                            const data = await response.text();
+                                            const { output } = parseApiResponse(data); // Extract the "output" part
+                            
+                                            // Wrap the API response in a <div> element and apply styling
+                                                alphaOutputContainer.innerHTML = `<div style="font-weight: bold; font-size: larger;">Result: ${output}</div>`;                                        } catch (error) {
+                                            console.error(error);
+                                        }
+                                    });
+                                    // Function to parse the API response (extracts output)
+                                    function parseApiResponse(responseData) {
+                                        try {
+                                            return JSON.parse(responseData);
+                                        } catch (error) {
+                                            console.error('Error parsing API response:', error);
+                                            return { output: '', error: '' };
+                                        }
+                                    }
+                                });
+                            </script>
+                        </div>
+                        
+                        {% endif %}
+    
+                        <!-- Link to View Transcript -->
+                        {% if video.words_status == 'COMPLETED' %}
+                        <a href="{% url 'view_transcript_words' video.id %}" class="btn btn-primary btn-icon btn-inner--text">View Words Transcript</a>
+                        {% endif %}
+                        {% if video.alphabets_status == 'COMPLETED' %}
+                        <a href="{% url 'view_transcript_alphabets' video.id %}" class="btn btn-primary btn-icon btn-inner--text">View Alphabets Transcript</a>
+                        {% endif %}
+                        {% if video.words_status == 'COMPLETED' or video.alphabets_status == 'COMPLETED' %}
+                        <!-- Form for Reprocessing -->
+                        <div style="text-align: center; margin: 10px;">
+                            <form method="POST" action="{% url 'process_video_words' video.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="reprocess" value="true">
+                                <button type="submit" class="btn btn-primary btn-icon btn-inner--text">Reprocess Words</button>
+                            </form>
+                            <form method="POST" action="{% url 'process_video_alphabets' video.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="reprocess" value="true">
+                                <button type="submit" class="btn btn-primary btn-icon btn-inner--text">Reprocess Alphabets</button>
+                            </form>
+                        </div>
+                        {% endif %}
+    
+                        <!-- Delete Video Button -->
+                        <div style="text-align: center; margin: 10px;">
+                            <form method="POST" action="{% url 'delete_video' video.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="_method" value="DELETE">
+                                <button type="submit" class="btn btn-primary btn-icon btn-inner--text">Delete</button>
+                            </form>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    
+    
+</section>
+​
+{% endblock content %}
+​
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

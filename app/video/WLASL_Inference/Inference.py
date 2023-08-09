@@ -5,7 +5,15 @@ import cv2
 from pytorch_i3d import InceptionI3d
 import torch.nn as nn
 import torch.nn.functional as nnf
-from torchinfo import summary
+import sys
+import os
+import django
+
+sys.path.append('/afs/ece.cmu.edu/usr/hanqid/Public/asl-text-speech/app')     # change the path to your project path
+os.environ['DJANGO_SETTINGS_MODULE'] = 'asl_text_speech.settings'  
+django.setup()
+
+from video.models import Video 
 
 def pad(img):
     max_size = max(img.shape)
@@ -40,8 +48,7 @@ def load_model(weights, num_classes):
     i3d = InceptionI3d(400, in_channels=3)
     i3d.replace_logits(num_classes)
     i3d.load_state_dict(torch.load(weights, map_location=torch.device('cpu')))
-    # summary(i3d)
-    # i3d.cuda()
+    i3d.cuda()
     i3d = nn.DataParallel(i3d)
     i3d.eval()
 
@@ -51,24 +58,24 @@ if __name__ == '__main__':
 
     num_classes = 100
 
-    file = pd.read_csv("dataset\wlasl_class_list.txt", sep='\t', header=None)
+    file = pd.read_csv("dataset/wlasl_class_list.txt", sep='\t', header=None)
     # file = pd.read_csv("D:\\asl-text-speech\\app\\video\WLASL_Inference\dataset\wlasl_class_list.txt", sep='\t', header=None)
     all_words = file[1].tolist()
     glosses = all_words[:num_classes]
 
-    weights = 'weights\\nslt_100.pt'
+    weights = 'weights/nslt_100.pt'
     # weights = 'D:\\asl-text-speech\\app\\video\WLASL_Inference\weights\\nslt_100.pt'
     i3d = load_model(weights, num_classes)
 
     sequence = []
     sentence = []
-    frame_number = 0  # Counter for the current frame number
-    threshold = 0.85
+    threshold = 0.90
+    frame_count = 0
     word = ""
 
-    cap = cv2.VideoCapture("D:\\asl-text-speech\\test - Trim.mp4")
-    # cap = cv2.VideoCapture("D:\\asl-text-speech\AppleCapoutput.mp4")
-    # cap = cv2.VideoCapture(0)
+    video_file_path = sys.argv[1]  # Get the video file path from the command-line arguments
+    video_id = int(sys.argv[2])
+    cap = cv2.VideoCapture(video_file_path)
     while cap.isOpened():
         # Read feed
         ret, frame = cap.read()
@@ -94,29 +101,12 @@ if __name__ == '__main__':
                 if len(sentence) > 0: 
                     if word != sentence[-1]:
                         sentence.append(word)
-                        print(f"Frame {frame_number}: {word}")
+
                 else:
                     sentence.append(word)
-                    print(f"Frame {frame_number}: {word}")
 
-                if len(sentence) > 5: 
-                    sentence = sentence[-5:]
             
-            frame_number += 1  # Increase the frame counter
-                
-        # Render output
-        cv2.rectangle(output_frame, (0,0), (640, 40), (245, 117, 16), -1)
-        cv2.putText(output_frame, ' '.join(sentence), (3,30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-
-        # Show to screen
-        cv2.imshow('OpenCV Feed', output_frame)
-        # print(sentence, end='\r')
-
-        # Close window
-        if cv2.waitKey(10) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
-    print(sentence)
-    
+            frame_count += 1
+            
+    # Get the video instance and update its transcript field
+    print(' '.join(sentence))
